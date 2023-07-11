@@ -8,34 +8,53 @@
 open! Sexplib.Conv
 open Tree_sitter_run
 
-type pat_780550e = Token.t (* pattern [0-9]+ *)
+type pat_db4e4e9 =
+  Token.t (* pattern [-+]?([0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?|0[xX][0-9a-fA-F]+|[nN][aA][nN]|[iI][nN][fF]) *)
 
 type semgrep_metavariable = Token.t
 
-type identifier = Token.t (* pattern [a-zA-Z_:][a-zA-Z0-9_:]* *)
-
-type float_literal =
-  Token.t (* pattern [-+]?([0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?|0[xX][0-9a-fA-F]+|[nN][aA][nN]|[iI][nN][fF]) *)
-
 type pat_dcab316 = Token.t (* pattern [1-9][0-9]* *)
-
-type single_quoted_string = Token.t
 
 type double_quoted_string = Token.t
 
-type aggregation_operator = [
-    `Sum of Token.t (* "sum" *)
-  | `Max of Token.t (* "max" *)
-  | `Min of Token.t (* "min" *)
-  | `Avg of Token.t (* "avg" *)
-  | `Group of Token.t (* "group" *)
-  | `Stddev of Token.t (* "stddev" *)
-  | `Stdvar of Token.t (* "stdvar" *)
-  | `Count of Token.t (* "count" *)
-  | `Count_values of Token.t (* "count_values" *)
-  | `Bott of Token.t (* "bottomk" *)
-  | `Topk of Token.t (* "topk" *)
-  | `Quan of Token.t (* "quantile" *)
+type identifier = Token.t (* pattern [a-zA-Z_:][a-zA-Z0-9_:]* *)
+
+type single_quoted_string = Token.t
+
+type pat_780550e = Token.t (* pattern [0-9]+ *)
+
+type float_literal = [
+    `Semg_meta of semgrep_metavariable (*tok*)
+  | `Pat_db4e4e9 of pat_db4e4e9
+]
+
+type at = (
+    Token.t (* "@" *)
+  * [
+        `Star of Token.t (* "start()" *)
+      | `EndL of Token.t (* "end()" *)
+      | `Pat_dcab316 of pat_dcab316
+    ]
+)
+
+type function_name = [
+    `Semg_meta of semgrep_metavariable (*tok*)
+  | `Id of identifier (*tok*)
+]
+
+type label_name = [
+    `Semg_meta of semgrep_metavariable (*tok*)
+  | `Id of identifier (*tok*)
+]
+
+type metric_name = [
+    `Semg_meta of semgrep_metavariable (*tok*)
+  | `Id of identifier (*tok*)
+]
+
+type quoted_string = [
+    `Single_quoted_str of single_quoted_string (*tok*)
+  | `Double_quoted_str of double_quoted_string (*tok*)
 ]
 
 type duration =
@@ -53,33 +72,20 @@ type duration =
   )
     list (* one or more *)
 
-type metric_name = [
-    `Semg_meta of semgrep_metavariable (*tok*)
-  | `Id of identifier (*tok*)
-]
-
-type label_name = [
-    `Semg_meta of semgrep_metavariable (*tok*)
-  | `Id of identifier (*tok*)
-]
-
-type function_name = [
-    `Semg_meta of semgrep_metavariable (*tok*)
-  | `Id of identifier (*tok*)
-]
-
-type at = (
-    Token.t (* "@" *)
-  * [
-        `Star of Token.t (* "start()" *)
-      | `EndL of Token.t (* "end()" *)
-      | `Pat_dcab316 of pat_dcab316
-    ]
+type anon_label_name_rep_COMMA_label_name_opt_COMMA_84ead0c = (
+    label_name
+  * (Token.t (* "," *) * label_name) list (* zero or more *)
+  * Token.t (* "," *) option
 )
 
-type quoted_string = [
-    `Single_quoted_str of single_quoted_string (*tok*)
-  | `Double_quoted_str of double_quoted_string (*tok*)
+type string_literal = [
+    `Semg_meta of semgrep_metavariable (*tok*)
+  | `Quoted_str of quoted_string
+]
+
+type label_value = [
+    `Semg_meta of semgrep_metavariable (*tok*)
+  | `Quoted_str of quoted_string
 ]
 
 type subquery_range_selection = (
@@ -93,26 +99,6 @@ type subquery_range_selection = (
 type range_selection = (Token.t (* "[" *) * duration * Token.t (* "]" *))
 
 type offset = (Token.t (* "offset" *) * Token.t (* "-" *) option * duration)
-
-type anon_label_name_rep_COMMA_label_name_opt_COMMA_84ead0c = (
-    label_name
-  * (Token.t (* "," *) * label_name) list (* zero or more *)
-  * Token.t (* "," *) option
-)
-
-type string_literal = quoted_string
-
-type modifier = [
-    `Offset_opt_at of (offset * at option)
-  | `At_opt_offset of (at * offset option)
-]
-
-type aggregation_grouping = (
-    [ `By of Token.t (* "by" *) | `With of Token.t (* "without" *) ]
-  * Token.t (* "(" *)
-  * anon_label_name_rep_COMMA_label_name_opt_COMMA_84ead0c option
-  * Token.t (* ")" *)
-)
 
 type binary_grouping = (
     [ `On of Token.t (* "on" *) | `Igno of Token.t (* "ignoring" *) ]
@@ -134,13 +120,15 @@ type binary_grouping = (
       option
 )
 
-type label_value = [
-    `Semg_meta of semgrep_metavariable (*tok*)
-  | `Quoted_str of string_literal
-]
+type grouping = (
+    [ `By of Token.t (* "by" *) | `With of Token.t (* "without" *) ]
+  * Token.t (* "(" *)
+  * anon_label_name_rep_COMMA_label_name_opt_COMMA_84ead0c option
+  * Token.t (* ")" *)
+)
 
 type literal_expression = [
-    `Float_lit of float_literal (*tok*)
+    `Float_lit of float_literal
   | `Str_lit of string_literal
 ]
 
@@ -155,6 +143,11 @@ type label_matcher = (
   * label_value
 )
 
+type modifier = [
+    `Offset_opt_at of (offset * at option)
+  | `At_opt_offset of (at * offset option)
+]
+
 type label_selectors = (
     Token.t (* "{" *)
   * (
@@ -168,9 +161,23 @@ type label_selectors = (
 
 type series_matcher = (metric_name * label_selectors option)
 
-type timeseries_selector_expression = [
-    `Inst_vec_sele of (series_matcher * modifier option)
-  | `Range_vec_sele of (series_matcher * range_selection * modifier option)
+type range_vector_selector = [
+    `Semg_meta of semgrep_metavariable (*tok*)
+  | `Series_matc_range_sele_opt_modi of (
+        series_matcher
+      * range_selection
+      * modifier option
+    )
+]
+
+type instant_vector_selector = [
+    `Semg_meta of semgrep_metavariable (*tok*)
+  | `Series_matc_opt_modi of (series_matcher * modifier option)
+]
+
+type selector_expression = [
+    `Inst_vec_sele of instant_vector_selector
+  | `Range_vec_sele of range_vector_selector
 ]
 
 type binary_expression = [
@@ -228,6 +235,8 @@ type binary_expression = [
     )
 ]
 
+and call_expression = function_call
+
 and function_args = (
     Token.t (* "(" *)
   * (
@@ -239,20 +248,13 @@ and function_args = (
   * Token.t (* ")" *)
 )
 
-and function_call = (function_name * function_args)
-
-and operator_expression = [
-    `Aggr_exp of (
-        aggregation_operator
-      * aggregation_grouping option
-      * Token.t (* "(" *)
-      * (literal_expression * Token.t (* "," *)) option
-      * query_
-      * Token.t (* ")" *)
-      * aggregation_grouping option
-    )
-  | `Bin_exp of binary_expression
+and function_call = [
+    `Func_name_func_args of (function_name * function_args)
+  | `Func_name_grou_func_args of (function_name * grouping * function_args)
+  | `Func_name_func_args_grou of (function_name * function_args * grouping)
 ]
+
+and operator_expression = binary_expression
 
 and query = [
     `Query_exp of query_expression
@@ -265,8 +267,8 @@ and query_ = query
 
 and query_expression = [
     `Lit_exp of literal_expression
-  | `Timess_sele_exp of timeseries_selector_expression
-  | `Func_exp of (function_name * function_args)
+  | `Sele_exp of selector_expression
+  | `Call_exp of call_expression
   | `Op_exp of operator_expression
   | `Subq_exp of (query_ * subquery_range_selection * modifier option)
 ]
@@ -274,28 +276,5 @@ and query_expression = [
 and subquery = (query_ * subquery_range_selection * modifier option)
 
 type comment (* inlined *) = Token.t
-
-type range_vector_selector (* inlined *) = (
-    series_matcher
-  * range_selection
-  * modifier option
-)
-
-type instant_vector_selector (* inlined *) = (
-    series_matcher
-  * modifier option
-)
-
-type aggregation_expression (* inlined *) = (
-    aggregation_operator
-  * aggregation_grouping option
-  * Token.t (* "(" *)
-  * (literal_expression * Token.t (* "," *)) option
-  * query_
-  * Token.t (* ")" *)
-  * aggregation_grouping option
-)
-
-type function_expression (* inlined *) = function_call
 
 type subquery_expression (* inlined *) = subquery

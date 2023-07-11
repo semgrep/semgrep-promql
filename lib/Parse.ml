@@ -33,30 +33,13 @@ let extras = [
 ]
 
 let children_regexps : (string * Run.exp option) list = [
-  "float_literal", None;
-  "pat_dcab316", None;
-  "semgrep_metavariable", None;
   "double_quoted_string", None;
-  "single_quoted_string", None;
+  "pat_dcab316", None;
   "identifier", None;
-  "aggregation_operator",
-  Some (
-    Alt [|
-      Token (Literal "sum");
-      Token (Literal "max");
-      Token (Literal "min");
-      Token (Literal "avg");
-      Token (Literal "group");
-      Token (Literal "stddev");
-      Token (Literal "stdvar");
-      Token (Literal "count");
-      Token (Literal "count_values");
-      Token (Literal "bottomk");
-      Token (Literal "topk");
-      Token (Literal "quantile");
-    |];
-  );
   "pat_780550e", None;
+  "semgrep_metavariable", None;
+  "single_quoted_string", None;
+  "pat_db4e4e9", None;
   "at",
   Some (
     Seq [
@@ -67,34 +50,6 @@ let children_regexps : (string * Run.exp option) list = [
         Token (Name "pat_dcab316");
       |];
     ];
-  );
-  "quoted_string",
-  Some (
-    Alt [|
-      Token (Name "single_quoted_string");
-      Token (Name "double_quoted_string");
-    |];
-  );
-  "function_name",
-  Some (
-    Alt [|
-      Token (Name "semgrep_metavariable");
-      Token (Name "identifier");
-    |];
-  );
-  "label_name",
-  Some (
-    Alt [|
-      Token (Name "semgrep_metavariable");
-      Token (Name "identifier");
-    |];
-  );
-  "metric_name",
-  Some (
-    Alt [|
-      Token (Name "semgrep_metavariable");
-      Token (Name "identifier");
-    |];
   );
   "duration",
   Some (
@@ -113,14 +68,96 @@ let children_regexps : (string * Run.exp option) list = [
       ];
     );
   );
-  "label_value",
+  "label_name",
   Some (
     Alt [|
       Token (Name "semgrep_metavariable");
-      Token (Name "quoted_string");
+      Token (Name "identifier");
     |];
   );
-  "string_literal", Some (Token (Name "quoted_string"););
+  "metric_name",
+  Some (
+    Alt [|
+      Token (Name "semgrep_metavariable");
+      Token (Name "identifier");
+    |];
+  );
+  "function_name",
+  Some (
+    Alt [|
+      Token (Name "semgrep_metavariable");
+      Token (Name "identifier");
+    |];
+  );
+  "quoted_string",
+  Some (
+    Alt [|
+      Token (Name "single_quoted_string");
+      Token (Name "double_quoted_string");
+    |];
+  );
+  "float_literal",
+  Some (
+    Alt [|
+      Token (Name "semgrep_metavariable");
+      Token (Name "pat_db4e4e9");
+    |];
+  );
+  "offset",
+  Some (
+    Seq [
+      Token (Literal "offset");
+      Opt (
+        Token (Literal "-");
+      );
+      Token (Name "duration");
+    ];
+  );
+  "subquery_range_selection",
+  Some (
+    Seq [
+      Token (Literal "[");
+      Token (Name "duration");
+      Token (Literal ":");
+      Opt (
+        Token (Name "duration");
+      );
+      Token (Literal "]");
+    ];
+  );
+  "range_selection",
+  Some (
+    Seq [
+      Token (Literal "[");
+      Token (Name "duration");
+      Token (Literal "]");
+    ];
+  );
+  "grouping",
+  Some (
+    Seq [
+      Alt [|
+        Token (Literal "by");
+        Token (Literal "without");
+      |];
+      Token (Literal "(");
+      Opt (
+        Seq [
+          Token (Name "label_name");
+          Repeat (
+            Seq [
+              Token (Literal ",");
+              Token (Name "label_name");
+            ];
+          );
+          Opt (
+            Token (Literal ",");
+          );
+        ];
+      );
+      Token (Literal ")");
+    ];
+  );
   "binary_grouping",
   Some (
     Seq [
@@ -174,79 +211,18 @@ let children_regexps : (string * Run.exp option) list = [
       );
     ];
   );
-  "aggregation_grouping",
-  Some (
-    Seq [
-      Alt [|
-        Token (Literal "by");
-        Token (Literal "without");
-      |];
-      Token (Literal "(");
-      Opt (
-        Seq [
-          Token (Name "label_name");
-          Repeat (
-            Seq [
-              Token (Literal ",");
-              Token (Name "label_name");
-            ];
-          );
-          Opt (
-            Token (Literal ",");
-          );
-        ];
-      );
-      Token (Literal ")");
-    ];
-  );
-  "subquery_range_selection",
-  Some (
-    Seq [
-      Token (Literal "[");
-      Token (Name "duration");
-      Token (Literal ":");
-      Opt (
-        Token (Name "duration");
-      );
-      Token (Literal "]");
-    ];
-  );
-  "range_selection",
-  Some (
-    Seq [
-      Token (Literal "[");
-      Token (Name "duration");
-      Token (Literal "]");
-    ];
-  );
-  "offset",
-  Some (
-    Seq [
-      Token (Literal "offset");
-      Opt (
-        Token (Literal "-");
-      );
-      Token (Name "duration");
-    ];
-  );
-  "label_matcher",
-  Some (
-    Seq [
-      Token (Name "label_name");
-      Alt [|
-        Token (Literal "=");
-        Token (Literal "!=");
-        Token (Literal "=~");
-        Token (Literal "!~");
-      |];
-      Token (Name "label_value");
-    ];
-  );
-  "literal_expression",
+  "string_literal",
   Some (
     Alt [|
-      Token (Name "float_literal");
-      Token (Name "string_literal");
+      Token (Name "semgrep_metavariable");
+      Token (Name "quoted_string");
+    |];
+  );
+  "label_value",
+  Some (
+    Alt [|
+      Token (Name "semgrep_metavariable");
+      Token (Name "quoted_string");
     |];
   );
   "modifier",
@@ -265,6 +241,26 @@ let children_regexps : (string * Run.exp option) list = [
         );
       ];
     |];
+  );
+  "literal_expression",
+  Some (
+    Alt [|
+      Token (Name "float_literal");
+      Token (Name "string_literal");
+    |];
+  );
+  "label_matcher",
+  Some (
+    Seq [
+      Token (Name "label_name");
+      Alt [|
+        Token (Literal "=");
+        Token (Literal "!=");
+        Token (Literal "=~");
+        Token (Literal "!~");
+      |];
+      Token (Name "label_value");
+    ];
   );
   "label_selectors",
   Some (
@@ -298,50 +294,35 @@ let children_regexps : (string * Run.exp option) list = [
   );
   "range_vector_selector",
   Some (
-    Seq [
-      Token (Name "series_matcher");
-      Token (Name "range_selection");
-      Opt (
-        Token (Name "modifier");
-      );
-    ];
+    Alt [|
+      Token (Name "semgrep_metavariable");
+      Seq [
+        Token (Name "series_matcher");
+        Token (Name "range_selection");
+        Opt (
+          Token (Name "modifier");
+        );
+      ];
+    |];
   );
   "instant_vector_selector",
   Some (
-    Seq [
-      Token (Name "series_matcher");
-      Opt (
-        Token (Name "modifier");
-      );
-    ];
+    Alt [|
+      Token (Name "semgrep_metavariable");
+      Seq [
+        Token (Name "series_matcher");
+        Opt (
+          Token (Name "modifier");
+        );
+      ];
+    |];
   );
-  "timeseries_selector_expression",
+  "selector_expression",
   Some (
     Alt [|
       Token (Name "instant_vector_selector");
       Token (Name "range_vector_selector");
     |];
-  );
-  "aggregation_expression",
-  Some (
-    Seq [
-      Token (Name "aggregation_operator");
-      Opt (
-        Token (Name "aggregation_grouping");
-      );
-      Token (Literal "(");
-      Opt (
-        Seq [
-          Token (Name "literal_expression");
-          Token (Literal ",");
-        ];
-      );
-      Token (Name "query");
-      Token (Literal ")");
-      Opt (
-        Token (Name "aggregation_grouping");
-      );
-    ];
   );
   "binary_expression",
   Some (
@@ -421,6 +402,7 @@ let children_regexps : (string * Run.exp option) list = [
       ];
     |];
   );
+  "call_expression", Some (Token (Name "function_call"););
   "function_args",
   Some (
     Seq [
@@ -444,18 +426,26 @@ let children_regexps : (string * Run.exp option) list = [
   );
   "function_call",
   Some (
-    Seq [
-      Token (Name "function_name");
-      Token (Name "function_args");
-    ];
+    Alt [|
+      Seq [
+        Token (Name "function_name");
+        Token (Name "function_args");
+      ];
+      Seq [
+        Token (Name "function_name");
+        Token (Name "grouping");
+        Token (Name "function_args");
+      ];
+      Seq [
+        Token (Name "function_name");
+        Token (Name "function_args");
+        Token (Name "grouping");
+      ];
+    |];
   );
-  "function_expression", Some (Token (Name "function_call"););
   "operator_expression",
   Some (
-    Alt [|
-      Token (Name "aggregation_expression");
-      Token (Name "binary_expression");
-    |];
+    Token (Name "binary_expression");
   );
   "query",
   Some (
@@ -472,8 +462,8 @@ let children_regexps : (string * Run.exp option) list = [
   Some (
     Alt [|
       Token (Name "literal_expression");
-      Token (Name "timeseries_selector_expression");
-      Token (Name "function_expression");
+      Token (Name "selector_expression");
+      Token (Name "call_expression");
       Token (Name "operator_expression");
       Token (Name "subquery_expression");
     |];
@@ -492,12 +482,23 @@ let children_regexps : (string * Run.exp option) list = [
   "query_", Some (Token (Name "query"););
 ]
 
-let trans_float_literal ((kind, body) : mt) : CST.float_literal =
+let trans_double_quoted_string ((kind, body) : mt) : CST.double_quoted_string =
   match body with
   | Leaf v -> v
   | Children _ -> assert false
 
+
 let trans_pat_dcab316 ((kind, body) : mt) : CST.pat_dcab316 =
+  match body with
+  | Leaf v -> v
+  | Children _ -> assert false
+
+let trans_identifier ((kind, body) : mt) : CST.identifier =
+  match body with
+  | Leaf v -> v
+  | Children _ -> assert false
+
+let trans_pat_780550e ((kind, body) : mt) : CST.pat_780550e =
   match body with
   | Leaf v -> v
   | Children _ -> assert false
@@ -507,79 +508,12 @@ let trans_semgrep_metavariable ((kind, body) : mt) : CST.semgrep_metavariable =
   | Leaf v -> v
   | Children _ -> assert false
 
-let trans_double_quoted_string ((kind, body) : mt) : CST.double_quoted_string =
-  match body with
-  | Leaf v -> v
-  | Children _ -> assert false
-
 let trans_single_quoted_string ((kind, body) : mt) : CST.single_quoted_string =
   match body with
   | Leaf v -> v
   | Children _ -> assert false
 
-
-let trans_identifier ((kind, body) : mt) : CST.identifier =
-  match body with
-  | Leaf v -> v
-  | Children _ -> assert false
-
-let trans_aggregation_operator ((kind, body) : mt) : CST.aggregation_operator =
-  match body with
-  | Children v ->
-      (match v with
-      | Alt (0, v) ->
-          `Sum (
-            Run.trans_token (Run.matcher_token v)
-          )
-      | Alt (1, v) ->
-          `Max (
-            Run.trans_token (Run.matcher_token v)
-          )
-      | Alt (2, v) ->
-          `Min (
-            Run.trans_token (Run.matcher_token v)
-          )
-      | Alt (3, v) ->
-          `Avg (
-            Run.trans_token (Run.matcher_token v)
-          )
-      | Alt (4, v) ->
-          `Group (
-            Run.trans_token (Run.matcher_token v)
-          )
-      | Alt (5, v) ->
-          `Stddev (
-            Run.trans_token (Run.matcher_token v)
-          )
-      | Alt (6, v) ->
-          `Stdvar (
-            Run.trans_token (Run.matcher_token v)
-          )
-      | Alt (7, v) ->
-          `Count (
-            Run.trans_token (Run.matcher_token v)
-          )
-      | Alt (8, v) ->
-          `Count_values (
-            Run.trans_token (Run.matcher_token v)
-          )
-      | Alt (9, v) ->
-          `Bott (
-            Run.trans_token (Run.matcher_token v)
-          )
-      | Alt (10, v) ->
-          `Topk (
-            Run.trans_token (Run.matcher_token v)
-          )
-      | Alt (11, v) ->
-          `Quan (
-            Run.trans_token (Run.matcher_token v)
-          )
-      | _ -> assert false
-      )
-  | Leaf _ -> assert false
-
-let trans_pat_780550e ((kind, body) : mt) : CST.pat_780550e =
+let trans_pat_db4e4e9 ((kind, body) : mt) : CST.pat_db4e4e9 =
   match body with
   | Leaf v -> v
   | Children _ -> assert false
@@ -606,70 +540,6 @@ let trans_at ((kind, body) : mt) : CST.at =
                 )
             | _ -> assert false
             )
-          )
-      | _ -> assert false
-      )
-  | Leaf _ -> assert false
-
-let trans_quoted_string ((kind, body) : mt) : CST.quoted_string =
-  match body with
-  | Children v ->
-      (match v with
-      | Alt (0, v) ->
-          `Single_quoted_str (
-            trans_single_quoted_string (Run.matcher_token v)
-          )
-      | Alt (1, v) ->
-          `Double_quoted_str (
-            trans_double_quoted_string (Run.matcher_token v)
-          )
-      | _ -> assert false
-      )
-  | Leaf _ -> assert false
-
-let trans_function_name ((kind, body) : mt) : CST.function_name =
-  match body with
-  | Children v ->
-      (match v with
-      | Alt (0, v) ->
-          `Semg_meta (
-            trans_semgrep_metavariable (Run.matcher_token v)
-          )
-      | Alt (1, v) ->
-          `Id (
-            trans_identifier (Run.matcher_token v)
-          )
-      | _ -> assert false
-      )
-  | Leaf _ -> assert false
-
-let trans_label_name ((kind, body) : mt) : CST.label_name =
-  match body with
-  | Children v ->
-      (match v with
-      | Alt (0, v) ->
-          `Semg_meta (
-            trans_semgrep_metavariable (Run.matcher_token v)
-          )
-      | Alt (1, v) ->
-          `Id (
-            trans_identifier (Run.matcher_token v)
-          )
-      | _ -> assert false
-      )
-  | Leaf _ -> assert false
-
-let trans_metric_name ((kind, body) : mt) : CST.metric_name =
-  match body with
-  | Children v ->
-      (match v with
-      | Alt (0, v) ->
-          `Semg_meta (
-            trans_semgrep_metavariable (Run.matcher_token v)
-          )
-      | Alt (1, v) ->
-          `Id (
-            trans_identifier (Run.matcher_token v)
           )
       | _ -> assert false
       )
@@ -722,7 +592,7 @@ let trans_duration ((kind, body) : mt) : CST.duration =
         v
   | Leaf _ -> assert false
 
-let trans_label_value ((kind, body) : mt) : CST.label_value =
+let trans_label_name ((kind, body) : mt) : CST.label_name =
   match body with
   | Children v ->
       (match v with
@@ -731,17 +601,178 @@ let trans_label_value ((kind, body) : mt) : CST.label_value =
             trans_semgrep_metavariable (Run.matcher_token v)
           )
       | Alt (1, v) ->
-          `Quoted_str (
-            trans_quoted_string (Run.matcher_token v)
+          `Id (
+            trans_identifier (Run.matcher_token v)
           )
       | _ -> assert false
       )
   | Leaf _ -> assert false
 
-let trans_string_literal ((kind, body) : mt) : CST.string_literal =
+let trans_metric_name ((kind, body) : mt) : CST.metric_name =
   match body with
   | Children v ->
-      trans_quoted_string (Run.matcher_token v)
+      (match v with
+      | Alt (0, v) ->
+          `Semg_meta (
+            trans_semgrep_metavariable (Run.matcher_token v)
+          )
+      | Alt (1, v) ->
+          `Id (
+            trans_identifier (Run.matcher_token v)
+          )
+      | _ -> assert false
+      )
+  | Leaf _ -> assert false
+
+let trans_function_name ((kind, body) : mt) : CST.function_name =
+  match body with
+  | Children v ->
+      (match v with
+      | Alt (0, v) ->
+          `Semg_meta (
+            trans_semgrep_metavariable (Run.matcher_token v)
+          )
+      | Alt (1, v) ->
+          `Id (
+            trans_identifier (Run.matcher_token v)
+          )
+      | _ -> assert false
+      )
+  | Leaf _ -> assert false
+
+let trans_quoted_string ((kind, body) : mt) : CST.quoted_string =
+  match body with
+  | Children v ->
+      (match v with
+      | Alt (0, v) ->
+          `Single_quoted_str (
+            trans_single_quoted_string (Run.matcher_token v)
+          )
+      | Alt (1, v) ->
+          `Double_quoted_str (
+            trans_double_quoted_string (Run.matcher_token v)
+          )
+      | _ -> assert false
+      )
+  | Leaf _ -> assert false
+
+let trans_float_literal ((kind, body) : mt) : CST.float_literal =
+  match body with
+  | Children v ->
+      (match v with
+      | Alt (0, v) ->
+          `Semg_meta (
+            trans_semgrep_metavariable (Run.matcher_token v)
+          )
+      | Alt (1, v) ->
+          `Pat_db4e4e9 (
+            trans_pat_db4e4e9 (Run.matcher_token v)
+          )
+      | _ -> assert false
+      )
+  | Leaf _ -> assert false
+
+let trans_offset ((kind, body) : mt) : CST.offset =
+  match body with
+  | Children v ->
+      (match v with
+      | Seq [v0; v1; v2] ->
+          (
+            Run.trans_token (Run.matcher_token v0),
+            Run.opt
+              (fun v -> Run.trans_token (Run.matcher_token v))
+              v1
+            ,
+            trans_duration (Run.matcher_token v2)
+          )
+      | _ -> assert false
+      )
+  | Leaf _ -> assert false
+
+let trans_subquery_range_selection ((kind, body) : mt) : CST.subquery_range_selection =
+  match body with
+  | Children v ->
+      (match v with
+      | Seq [v0; v1; v2; v3; v4] ->
+          (
+            Run.trans_token (Run.matcher_token v0),
+            trans_duration (Run.matcher_token v1),
+            Run.trans_token (Run.matcher_token v2),
+            Run.opt
+              (fun v -> trans_duration (Run.matcher_token v))
+              v3
+            ,
+            Run.trans_token (Run.matcher_token v4)
+          )
+      | _ -> assert false
+      )
+  | Leaf _ -> assert false
+
+let trans_range_selection ((kind, body) : mt) : CST.range_selection =
+  match body with
+  | Children v ->
+      (match v with
+      | Seq [v0; v1; v2] ->
+          (
+            Run.trans_token (Run.matcher_token v0),
+            trans_duration (Run.matcher_token v1),
+            Run.trans_token (Run.matcher_token v2)
+          )
+      | _ -> assert false
+      )
+  | Leaf _ -> assert false
+
+let trans_grouping ((kind, body) : mt) : CST.grouping =
+  match body with
+  | Children v ->
+      (match v with
+      | Seq [v0; v1; v2; v3] ->
+          (
+            (match v0 with
+            | Alt (0, v) ->
+                `By (
+                  Run.trans_token (Run.matcher_token v)
+                )
+            | Alt (1, v) ->
+                `With (
+                  Run.trans_token (Run.matcher_token v)
+                )
+            | _ -> assert false
+            )
+            ,
+            Run.trans_token (Run.matcher_token v1),
+            Run.opt
+              (fun v ->
+                (match v with
+                | Seq [v0; v1; v2] ->
+                    (
+                      trans_label_name (Run.matcher_token v0),
+                      Run.repeat
+                        (fun v ->
+                          (match v with
+                          | Seq [v0; v1] ->
+                              (
+                                Run.trans_token (Run.matcher_token v0),
+                                trans_label_name (Run.matcher_token v1)
+                              )
+                          | _ -> assert false
+                          )
+                        )
+                        v1
+                      ,
+                      Run.opt
+                        (fun v -> Run.trans_token (Run.matcher_token v))
+                        v2
+                    )
+                | _ -> assert false
+                )
+              )
+              v2
+            ,
+            Run.trans_token (Run.matcher_token v3)
+          )
+      | _ -> assert false
+      )
   | Leaf _ -> assert false
 
 let trans_binary_grouping ((kind, body) : mt) : CST.binary_grouping =
@@ -859,153 +890,33 @@ let trans_binary_grouping ((kind, body) : mt) : CST.binary_grouping =
       )
   | Leaf _ -> assert false
 
-let trans_aggregation_grouping ((kind, body) : mt) : CST.aggregation_grouping =
-  match body with
-  | Children v ->
-      (match v with
-      | Seq [v0; v1; v2; v3] ->
-          (
-            (match v0 with
-            | Alt (0, v) ->
-                `By (
-                  Run.trans_token (Run.matcher_token v)
-                )
-            | Alt (1, v) ->
-                `With (
-                  Run.trans_token (Run.matcher_token v)
-                )
-            | _ -> assert false
-            )
-            ,
-            Run.trans_token (Run.matcher_token v1),
-            Run.opt
-              (fun v ->
-                (match v with
-                | Seq [v0; v1; v2] ->
-                    (
-                      trans_label_name (Run.matcher_token v0),
-                      Run.repeat
-                        (fun v ->
-                          (match v with
-                          | Seq [v0; v1] ->
-                              (
-                                Run.trans_token (Run.matcher_token v0),
-                                trans_label_name (Run.matcher_token v1)
-                              )
-                          | _ -> assert false
-                          )
-                        )
-                        v1
-                      ,
-                      Run.opt
-                        (fun v -> Run.trans_token (Run.matcher_token v))
-                        v2
-                    )
-                | _ -> assert false
-                )
-              )
-              v2
-            ,
-            Run.trans_token (Run.matcher_token v3)
-          )
-      | _ -> assert false
-      )
-  | Leaf _ -> assert false
-
-let trans_subquery_range_selection ((kind, body) : mt) : CST.subquery_range_selection =
-  match body with
-  | Children v ->
-      (match v with
-      | Seq [v0; v1; v2; v3; v4] ->
-          (
-            Run.trans_token (Run.matcher_token v0),
-            trans_duration (Run.matcher_token v1),
-            Run.trans_token (Run.matcher_token v2),
-            Run.opt
-              (fun v -> trans_duration (Run.matcher_token v))
-              v3
-            ,
-            Run.trans_token (Run.matcher_token v4)
-          )
-      | _ -> assert false
-      )
-  | Leaf _ -> assert false
-
-let trans_range_selection ((kind, body) : mt) : CST.range_selection =
-  match body with
-  | Children v ->
-      (match v with
-      | Seq [v0; v1; v2] ->
-          (
-            Run.trans_token (Run.matcher_token v0),
-            trans_duration (Run.matcher_token v1),
-            Run.trans_token (Run.matcher_token v2)
-          )
-      | _ -> assert false
-      )
-  | Leaf _ -> assert false
-
-let trans_offset ((kind, body) : mt) : CST.offset =
-  match body with
-  | Children v ->
-      (match v with
-      | Seq [v0; v1; v2] ->
-          (
-            Run.trans_token (Run.matcher_token v0),
-            Run.opt
-              (fun v -> Run.trans_token (Run.matcher_token v))
-              v1
-            ,
-            trans_duration (Run.matcher_token v2)
-          )
-      | _ -> assert false
-      )
-  | Leaf _ -> assert false
-
-let trans_label_matcher ((kind, body) : mt) : CST.label_matcher =
-  match body with
-  | Children v ->
-      (match v with
-      | Seq [v0; v1; v2] ->
-          (
-            trans_label_name (Run.matcher_token v0),
-            (match v1 with
-            | Alt (0, v) ->
-                `EQ (
-                  Run.trans_token (Run.matcher_token v)
-                )
-            | Alt (1, v) ->
-                `BANGEQ (
-                  Run.trans_token (Run.matcher_token v)
-                )
-            | Alt (2, v) ->
-                `EQTILDE (
-                  Run.trans_token (Run.matcher_token v)
-                )
-            | Alt (3, v) ->
-                `BANGTILDE (
-                  Run.trans_token (Run.matcher_token v)
-                )
-            | _ -> assert false
-            )
-            ,
-            trans_label_value (Run.matcher_token v2)
-          )
-      | _ -> assert false
-      )
-  | Leaf _ -> assert false
-
-let trans_literal_expression ((kind, body) : mt) : CST.literal_expression =
+let trans_string_literal ((kind, body) : mt) : CST.string_literal =
   match body with
   | Children v ->
       (match v with
       | Alt (0, v) ->
-          `Float_lit (
-            trans_float_literal (Run.matcher_token v)
+          `Semg_meta (
+            trans_semgrep_metavariable (Run.matcher_token v)
           )
       | Alt (1, v) ->
-          `Str_lit (
-            trans_string_literal (Run.matcher_token v)
+          `Quoted_str (
+            trans_quoted_string (Run.matcher_token v)
+          )
+      | _ -> assert false
+      )
+  | Leaf _ -> assert false
+
+let trans_label_value ((kind, body) : mt) : CST.label_value =
+  match body with
+  | Children v ->
+      (match v with
+      | Alt (0, v) ->
+          `Semg_meta (
+            trans_semgrep_metavariable (Run.matcher_token v)
+          )
+      | Alt (1, v) ->
+          `Quoted_str (
+            trans_quoted_string (Run.matcher_token v)
           )
       | _ -> assert false
       )
@@ -1040,6 +951,55 @@ let trans_modifier ((kind, body) : mt) : CST.modifier =
                 )
             | _ -> assert false
             )
+          )
+      | _ -> assert false
+      )
+  | Leaf _ -> assert false
+
+let trans_literal_expression ((kind, body) : mt) : CST.literal_expression =
+  match body with
+  | Children v ->
+      (match v with
+      | Alt (0, v) ->
+          `Float_lit (
+            trans_float_literal (Run.matcher_token v)
+          )
+      | Alt (1, v) ->
+          `Str_lit (
+            trans_string_literal (Run.matcher_token v)
+          )
+      | _ -> assert false
+      )
+  | Leaf _ -> assert false
+
+let trans_label_matcher ((kind, body) : mt) : CST.label_matcher =
+  match body with
+  | Children v ->
+      (match v with
+      | Seq [v0; v1; v2] ->
+          (
+            trans_label_name (Run.matcher_token v0),
+            (match v1 with
+            | Alt (0, v) ->
+                `EQ (
+                  Run.trans_token (Run.matcher_token v)
+                )
+            | Alt (1, v) ->
+                `BANGEQ (
+                  Run.trans_token (Run.matcher_token v)
+                )
+            | Alt (2, v) ->
+                `EQTILDE (
+                  Run.trans_token (Run.matcher_token v)
+                )
+            | Alt (3, v) ->
+                `BANGTILDE (
+                  Run.trans_token (Run.matcher_token v)
+                )
+            | _ -> assert false
+            )
+            ,
+            trans_label_value (Run.matcher_token v2)
           )
       | _ -> assert false
       )
@@ -1105,13 +1065,23 @@ let trans_range_vector_selector ((kind, body) : mt) : CST.range_vector_selector 
   match body with
   | Children v ->
       (match v with
-      | Seq [v0; v1; v2] ->
-          (
-            trans_series_matcher (Run.matcher_token v0),
-            trans_range_selection (Run.matcher_token v1),
-            Run.opt
-              (fun v -> trans_modifier (Run.matcher_token v))
-              v2
+      | Alt (0, v) ->
+          `Semg_meta (
+            trans_semgrep_metavariable (Run.matcher_token v)
+          )
+      | Alt (1, v) ->
+          `Series_matc_range_sele_opt_modi (
+            (match v with
+            | Seq [v0; v1; v2] ->
+                (
+                  trans_series_matcher (Run.matcher_token v0),
+                  trans_range_selection (Run.matcher_token v1),
+                  Run.opt
+                    (fun v -> trans_modifier (Run.matcher_token v))
+                    v2
+                )
+            | _ -> assert false
+            )
           )
       | _ -> assert false
       )
@@ -1121,18 +1091,28 @@ let trans_instant_vector_selector ((kind, body) : mt) : CST.instant_vector_selec
   match body with
   | Children v ->
       (match v with
-      | Seq [v0; v1] ->
-          (
-            trans_series_matcher (Run.matcher_token v0),
-            Run.opt
-              (fun v -> trans_modifier (Run.matcher_token v))
-              v1
+      | Alt (0, v) ->
+          `Semg_meta (
+            trans_semgrep_metavariable (Run.matcher_token v)
+          )
+      | Alt (1, v) ->
+          `Series_matc_opt_modi (
+            (match v with
+            | Seq [v0; v1] ->
+                (
+                  trans_series_matcher (Run.matcher_token v0),
+                  Run.opt
+                    (fun v -> trans_modifier (Run.matcher_token v))
+                    v1
+                )
+            | _ -> assert false
+            )
           )
       | _ -> assert false
       )
   | Leaf _ -> assert false
 
-let trans_timeseries_selector_expression ((kind, body) : mt) : CST.timeseries_selector_expression =
+let trans_selector_expression ((kind, body) : mt) : CST.selector_expression =
   match body with
   | Children v ->
       (match v with
@@ -1148,42 +1128,7 @@ let trans_timeseries_selector_expression ((kind, body) : mt) : CST.timeseries_se
       )
   | Leaf _ -> assert false
 
-let rec trans_aggregation_expression ((kind, body) : mt) : CST.aggregation_expression =
-  match body with
-  | Children v ->
-      (match v with
-      | Seq [v0; v1; v2; v3; v4; v5; v6] ->
-          (
-            trans_aggregation_operator (Run.matcher_token v0),
-            Run.opt
-              (fun v -> trans_aggregation_grouping (Run.matcher_token v))
-              v1
-            ,
-            Run.trans_token (Run.matcher_token v2),
-            Run.opt
-              (fun v ->
-                (match v with
-                | Seq [v0; v1] ->
-                    (
-                      trans_literal_expression (Run.matcher_token v0),
-                      Run.trans_token (Run.matcher_token v1)
-                    )
-                | _ -> assert false
-                )
-              )
-              v3
-            ,
-            trans_query (Run.matcher_token v4),
-            Run.trans_token (Run.matcher_token v5),
-            Run.opt
-              (fun v -> trans_aggregation_grouping (Run.matcher_token v))
-              v6
-          )
-      | _ -> assert false
-      )
-  | Leaf _ -> assert false
-
-and trans_binary_expression ((kind, body) : mt) : CST.binary_expression =
+let rec trans_binary_expression ((kind, body) : mt) : CST.binary_expression =
   match body with
   | Children v ->
       (match v with
@@ -1373,6 +1318,12 @@ and trans_binary_expression ((kind, body) : mt) : CST.binary_expression =
       )
   | Leaf _ -> assert false
 
+and trans_call_expression ((kind, body) : mt) : CST.call_expression =
+  match body with
+  | Children v ->
+      trans_function_call (Run.matcher_token v)
+  | Leaf _ -> assert false
+
 and trans_function_args ((kind, body) : mt) : CST.function_args =
   match body with
   | Children v ->
@@ -1418,35 +1369,49 @@ and trans_function_call ((kind, body) : mt) : CST.function_call =
   match body with
   | Children v ->
       (match v with
-      | Seq [v0; v1] ->
-          (
-            trans_function_name (Run.matcher_token v0),
-            trans_function_args (Run.matcher_token v1)
+      | Alt (0, v) ->
+          `Func_name_func_args (
+            (match v with
+            | Seq [v0; v1] ->
+                (
+                  trans_function_name (Run.matcher_token v0),
+                  trans_function_args (Run.matcher_token v1)
+                )
+            | _ -> assert false
+            )
+          )
+      | Alt (1, v) ->
+          `Func_name_grou_func_args (
+            (match v with
+            | Seq [v0; v1; v2] ->
+                (
+                  trans_function_name (Run.matcher_token v0),
+                  trans_grouping (Run.matcher_token v1),
+                  trans_function_args (Run.matcher_token v2)
+                )
+            | _ -> assert false
+            )
+          )
+      | Alt (2, v) ->
+          `Func_name_func_args_grou (
+            (match v with
+            | Seq [v0; v1; v2] ->
+                (
+                  trans_function_name (Run.matcher_token v0),
+                  trans_function_args (Run.matcher_token v1),
+                  trans_grouping (Run.matcher_token v2)
+                )
+            | _ -> assert false
+            )
           )
       | _ -> assert false
       )
-  | Leaf _ -> assert false
-
-and trans_function_expression ((kind, body) : mt) : CST.function_expression =
-  match body with
-  | Children v ->
-      trans_function_call (Run.matcher_token v)
   | Leaf _ -> assert false
 
 and trans_operator_expression ((kind, body) : mt) : CST.operator_expression =
   match body with
   | Children v ->
-      (match v with
-      | Alt (0, v) ->
-          `Aggr_exp (
-            trans_aggregation_expression (Run.matcher_token v)
-          )
-      | Alt (1, v) ->
-          `Bin_exp (
-            trans_binary_expression (Run.matcher_token v)
-          )
-      | _ -> assert false
-      )
+      trans_binary_expression (Run.matcher_token v)
   | Leaf _ -> assert false
 
 and trans_query ((kind, body) : mt) : CST.query =
@@ -1482,12 +1447,12 @@ and trans_query_expression ((kind, body) : mt) : CST.query_expression =
             trans_literal_expression (Run.matcher_token v)
           )
       | Alt (1, v) ->
-          `Timess_sele_exp (
-            trans_timeseries_selector_expression (Run.matcher_token v)
+          `Sele_exp (
+            trans_selector_expression (Run.matcher_token v)
           )
       | Alt (2, v) ->
-          `Func_exp (
-            trans_function_expression (Run.matcher_token v)
+          `Call_exp (
+            trans_call_expression (Run.matcher_token v)
           )
       | Alt (3, v) ->
           `Op_exp (

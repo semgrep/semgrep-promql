@@ -19,64 +19,91 @@ let token (env : env) (tok : Tree_sitter_run.Token.t) =
 let blank (env : env) () =
   R.Tuple []
 
-let map_pat_780550e (env : env) (tok : CST.pat_780550e) =
-  (* pattern [0-9]+ *) token env tok
+let map_pat_db4e4e9 (env : env) (tok : CST.pat_db4e4e9) =
+  (* pattern [-+]?([0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?|0[xX][0-9a-fA-F]+|[nN][aA][nN]|[iI][nN][fF]) *) token env tok
 
 let map_semgrep_metavariable (env : env) (tok : CST.semgrep_metavariable) =
   (* semgrep_metavariable *) token env tok
 
-let map_identifier (env : env) (tok : CST.identifier) =
-  (* pattern [a-zA-Z_:][a-zA-Z0-9_:]* *) token env tok
-
-let map_float_literal (env : env) (tok : CST.float_literal) =
-  (* pattern [-+]?([0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?|0[xX][0-9a-fA-F]+|[nN][aA][nN]|[iI][nN][fF]) *) token env tok
-
 let map_pat_dcab316 (env : env) (tok : CST.pat_dcab316) =
   (* pattern [1-9][0-9]* *) token env tok
-
-let map_single_quoted_string (env : env) (tok : CST.single_quoted_string) =
-  (* single_quoted_string *) token env tok
 
 let map_double_quoted_string (env : env) (tok : CST.double_quoted_string) =
   (* double_quoted_string *) token env tok
 
-let map_aggregation_operator (env : env) (x : CST.aggregation_operator) =
+let map_identifier (env : env) (tok : CST.identifier) =
+  (* pattern [a-zA-Z_:][a-zA-Z0-9_:]* *) token env tok
+
+let map_single_quoted_string (env : env) (tok : CST.single_quoted_string) =
+  (* single_quoted_string *) token env tok
+
+let map_pat_780550e (env : env) (tok : CST.pat_780550e) =
+  (* pattern [0-9]+ *) token env tok
+
+let map_float_literal (env : env) (x : CST.float_literal) =
   (match x with
-  | `Sum tok -> R.Case ("Sum",
-      (* "sum" *) token env tok
+  | `Semg_meta tok -> R.Case ("Semg_meta",
+      (* semgrep_metavariable *) token env tok
     )
-  | `Max tok -> R.Case ("Max",
-      (* "max" *) token env tok
+  | `Pat_db4e4e9 x -> R.Case ("Pat_db4e4e9",
+      map_pat_db4e4e9 env x
     )
-  | `Min tok -> R.Case ("Min",
-      (* "min" *) token env tok
+  )
+
+let map_at (env : env) ((v1, v2) : CST.at) =
+  let v1 = (* "@" *) token env v1 in
+  let v2 =
+    (match v2 with
+    | `Star tok -> R.Case ("Star",
+        (* "start()" *) token env tok
+      )
+    | `EndL tok -> R.Case ("EndL",
+        (* "end()" *) token env tok
+      )
+    | `Pat_dcab316 x -> R.Case ("Pat_dcab316",
+        map_pat_dcab316 env x
+      )
     )
-  | `Avg tok -> R.Case ("Avg",
-      (* "avg" *) token env tok
+  in
+  R.Tuple [v1; v2]
+
+let map_function_name (env : env) (x : CST.function_name) =
+  (match x with
+  | `Semg_meta tok -> R.Case ("Semg_meta",
+      (* semgrep_metavariable *) token env tok
     )
-  | `Group tok -> R.Case ("Group",
-      (* "group" *) token env tok
+  | `Id tok -> R.Case ("Id",
+      (* pattern [a-zA-Z_:][a-zA-Z0-9_:]* *) token env tok
     )
-  | `Stddev tok -> R.Case ("Stddev",
-      (* "stddev" *) token env tok
+  )
+
+let map_label_name (env : env) (x : CST.label_name) =
+  (match x with
+  | `Semg_meta tok -> R.Case ("Semg_meta",
+      (* semgrep_metavariable *) token env tok
     )
-  | `Stdvar tok -> R.Case ("Stdvar",
-      (* "stdvar" *) token env tok
+  | `Id tok -> R.Case ("Id",
+      (* pattern [a-zA-Z_:][a-zA-Z0-9_:]* *) token env tok
     )
-  | `Count tok -> R.Case ("Count",
-      (* "count" *) token env tok
+  )
+
+let map_metric_name (env : env) (x : CST.metric_name) =
+  (match x with
+  | `Semg_meta tok -> R.Case ("Semg_meta",
+      (* semgrep_metavariable *) token env tok
     )
-  | `Count_values tok -> R.Case ("Count_values",
-      (* "count_values" *) token env tok
+  | `Id tok -> R.Case ("Id",
+      (* pattern [a-zA-Z_:][a-zA-Z0-9_:]* *) token env tok
     )
-  | `Bott tok -> R.Case ("Bott",
-      (* "bottomk" *) token env tok
+  )
+
+let map_quoted_string (env : env) (x : CST.quoted_string) =
+  (match x with
+  | `Single_quoted_str tok -> R.Case ("Single_quoted_str",
+      (* single_quoted_string *) token env tok
     )
-  | `Topk tok -> R.Case ("Topk",
-      (* "topk" *) token env tok
-    )
-  | `Quan tok -> R.Case ("Quan",
-      (* "quantile" *) token env tok
+  | `Double_quoted_str tok -> R.Case ("Double_quoted_str",
+      (* double_quoted_string *) token env tok
     )
   )
 
@@ -111,60 +138,41 @@ let map_duration (env : env) (xs : CST.duration) =
     R.Tuple [v1; v2]
   ) xs)
 
-let map_metric_name (env : env) (x : CST.metric_name) =
-  (match x with
-  | `Semg_meta tok -> R.Case ("Semg_meta",
-      (* semgrep_metavariable *) token env tok
-    )
-  | `Id tok -> R.Case ("Id",
-      (* pattern [a-zA-Z_:][a-zA-Z0-9_:]* *) token env tok
-    )
-  )
-
-let map_label_name (env : env) (x : CST.label_name) =
-  (match x with
-  | `Semg_meta tok -> R.Case ("Semg_meta",
-      (* semgrep_metavariable *) token env tok
-    )
-  | `Id tok -> R.Case ("Id",
-      (* pattern [a-zA-Z_:][a-zA-Z0-9_:]* *) token env tok
-    )
-  )
-
-let map_function_name (env : env) (x : CST.function_name) =
-  (match x with
-  | `Semg_meta tok -> R.Case ("Semg_meta",
-      (* semgrep_metavariable *) token env tok
-    )
-  | `Id tok -> R.Case ("Id",
-      (* pattern [a-zA-Z_:][a-zA-Z0-9_:]* *) token env tok
-    )
-  )
-
-let map_at (env : env) ((v1, v2) : CST.at) =
-  let v1 = (* "@" *) token env v1 in
+let map_anon_label_name_rep_COMMA_label_name_opt_COMMA_84ead0c (env : env) ((v1, v2, v3) : CST.anon_label_name_rep_COMMA_label_name_opt_COMMA_84ead0c) =
+  let v1 = map_label_name env v1 in
   let v2 =
-    (match v2 with
-    | `Star tok -> R.Case ("Star",
-        (* "start()" *) token env tok
-      )
-    | `EndL tok -> R.Case ("EndL",
-        (* "end()" *) token env tok
-      )
-    | `Pat_dcab316 x -> R.Case ("Pat_dcab316",
-        map_pat_dcab316 env x
-      )
-    )
+    R.List (List.map (fun (v1, v2) ->
+      let v1 = (* "," *) token env v1 in
+      let v2 = map_label_name env v2 in
+      R.Tuple [v1; v2]
+    ) v2)
   in
-  R.Tuple [v1; v2]
+  let v3 =
+    (match v3 with
+    | Some tok -> R.Option (Some (
+        (* "," *) token env tok
+      ))
+    | None -> R.Option None)
+  in
+  R.Tuple [v1; v2; v3]
 
-let map_quoted_string (env : env) (x : CST.quoted_string) =
+let map_string_literal (env : env) (x : CST.string_literal) =
   (match x with
-  | `Single_quoted_str tok -> R.Case ("Single_quoted_str",
-      (* single_quoted_string *) token env tok
+  | `Semg_meta tok -> R.Case ("Semg_meta",
+      (* semgrep_metavariable *) token env tok
     )
-  | `Double_quoted_str tok -> R.Case ("Double_quoted_str",
-      (* double_quoted_string *) token env tok
+  | `Quoted_str x -> R.Case ("Quoted_str",
+      map_quoted_string env x
+    )
+  )
+
+let map_label_value (env : env) (x : CST.label_value) =
+  (match x with
+  | `Semg_meta tok -> R.Case ("Semg_meta",
+      (* semgrep_metavariable *) token env tok
+    )
+  | `Quoted_str x -> R.Case ("Quoted_str",
+      map_quoted_string env x
     )
   )
 
@@ -199,75 +207,6 @@ let map_offset (env : env) ((v1, v2, v3) : CST.offset) =
   in
   let v3 = map_duration env v3 in
   R.Tuple [v1; v2; v3]
-
-let map_anon_label_name_rep_COMMA_label_name_opt_COMMA_84ead0c (env : env) ((v1, v2, v3) : CST.anon_label_name_rep_COMMA_label_name_opt_COMMA_84ead0c) =
-  let v1 = map_label_name env v1 in
-  let v2 =
-    R.List (List.map (fun (v1, v2) ->
-      let v1 = (* "," *) token env v1 in
-      let v2 = map_label_name env v2 in
-      R.Tuple [v1; v2]
-    ) v2)
-  in
-  let v3 =
-    (match v3 with
-    | Some tok -> R.Option (Some (
-        (* "," *) token env tok
-      ))
-    | None -> R.Option None)
-  in
-  R.Tuple [v1; v2; v3]
-
-let map_string_literal (env : env) (x : CST.string_literal) =
-  map_quoted_string env x
-
-let map_modifier (env : env) (x : CST.modifier) =
-  (match x with
-  | `Offset_opt_at (v1, v2) -> R.Case ("Offset_opt_at",
-      let v1 = map_offset env v1 in
-      let v2 =
-        (match v2 with
-        | Some x -> R.Option (Some (
-            map_at env x
-          ))
-        | None -> R.Option None)
-      in
-      R.Tuple [v1; v2]
-    )
-  | `At_opt_offset (v1, v2) -> R.Case ("At_opt_offset",
-      let v1 = map_at env v1 in
-      let v2 =
-        (match v2 with
-        | Some x -> R.Option (Some (
-            map_offset env x
-          ))
-        | None -> R.Option None)
-      in
-      R.Tuple [v1; v2]
-    )
-  )
-
-let map_aggregation_grouping (env : env) ((v1, v2, v3, v4) : CST.aggregation_grouping) =
-  let v1 =
-    (match v1 with
-    | `By tok -> R.Case ("By",
-        (* "by" *) token env tok
-      )
-    | `With tok -> R.Case ("With",
-        (* "without" *) token env tok
-      )
-    )
-  in
-  let v2 = (* "(" *) token env v2 in
-  let v3 =
-    (match v3 with
-    | Some x -> R.Option (Some (
-        map_anon_label_name_rep_COMMA_label_name_opt_COMMA_84ead0c env x
-      ))
-    | None -> R.Option None)
-  in
-  let v4 = (* ")" *) token env v4 in
-  R.Tuple [v1; v2; v3; v4]
 
 let map_binary_grouping (env : env) ((v1, v2, v3, v4, v5) : CST.binary_grouping) =
   let v1 =
@@ -324,20 +263,32 @@ let map_binary_grouping (env : env) ((v1, v2, v3, v4, v5) : CST.binary_grouping)
   in
   R.Tuple [v1; v2; v3; v4; v5]
 
-let map_label_value (env : env) (x : CST.label_value) =
-  (match x with
-  | `Semg_meta tok -> R.Case ("Semg_meta",
-      (* semgrep_metavariable *) token env tok
+let map_grouping (env : env) ((v1, v2, v3, v4) : CST.grouping) =
+  let v1 =
+    (match v1 with
+    | `By tok -> R.Case ("By",
+        (* "by" *) token env tok
+      )
+    | `With tok -> R.Case ("With",
+        (* "without" *) token env tok
+      )
     )
-  | `Quoted_str x -> R.Case ("Quoted_str",
-      map_string_literal env x
-    )
-  )
+  in
+  let v2 = (* "(" *) token env v2 in
+  let v3 =
+    (match v3 with
+    | Some x -> R.Option (Some (
+        map_anon_label_name_rep_COMMA_label_name_opt_COMMA_84ead0c env x
+      ))
+    | None -> R.Option None)
+  in
+  let v4 = (* ")" *) token env v4 in
+  R.Tuple [v1; v2; v3; v4]
 
 let map_literal_expression (env : env) (x : CST.literal_expression) =
   (match x with
-  | `Float_lit tok -> R.Case ("Float_lit",
-      (* pattern [-+]?([0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?|0[xX][0-9a-fA-F]+|[nN][aA][nN]|[iI][nN][fF]) *) token env tok
+  | `Float_lit x -> R.Case ("Float_lit",
+      map_float_literal env x
     )
   | `Str_lit x -> R.Case ("Str_lit",
       map_string_literal env x
@@ -364,6 +315,32 @@ let map_label_matcher (env : env) ((v1, v2, v3) : CST.label_matcher) =
   in
   let v3 = map_label_value env v3 in
   R.Tuple [v1; v2; v3]
+
+let map_modifier (env : env) (x : CST.modifier) =
+  (match x with
+  | `Offset_opt_at (v1, v2) -> R.Case ("Offset_opt_at",
+      let v1 = map_offset env v1 in
+      let v2 =
+        (match v2 with
+        | Some x -> R.Option (Some (
+            map_at env x
+          ))
+        | None -> R.Option None)
+      in
+      R.Tuple [v1; v2]
+    )
+  | `At_opt_offset (v1, v2) -> R.Case ("At_opt_offset",
+      let v1 = map_at env v1 in
+      let v2 =
+        (match v2 with
+        | Some x -> R.Option (Some (
+            map_offset env x
+          ))
+        | None -> R.Option None)
+      in
+      R.Tuple [v1; v2]
+    )
+  )
 
 let map_label_selectors (env : env) ((v1, v2, v3) : CST.label_selectors) =
   let v1 = (* "{" *) token env v1 in
@@ -403,20 +380,12 @@ let map_series_matcher (env : env) ((v1, v2) : CST.series_matcher) =
   in
   R.Tuple [v1; v2]
 
-let map_timeseries_selector_expression (env : env) (x : CST.timeseries_selector_expression) =
+let map_range_vector_selector (env : env) (x : CST.range_vector_selector) =
   (match x with
-  | `Inst_vec_sele (v1, v2) -> R.Case ("Inst_vec_sele",
-      let v1 = map_series_matcher env v1 in
-      let v2 =
-        (match v2 with
-        | Some x -> R.Option (Some (
-            map_modifier env x
-          ))
-        | None -> R.Option None)
-      in
-      R.Tuple [v1; v2]
+  | `Semg_meta tok -> R.Case ("Semg_meta",
+      (* semgrep_metavariable *) token env tok
     )
-  | `Range_vec_sele (v1, v2, v3) -> R.Case ("Range_vec_sele",
+  | `Series_matc_range_sele_opt_modi (v1, v2, v3) -> R.Case ("Series_matc_range_sele_opt_modi",
       let v1 = map_series_matcher env v1 in
       let v2 = map_range_selection env v2 in
       let v3 =
@@ -427,6 +396,34 @@ let map_timeseries_selector_expression (env : env) (x : CST.timeseries_selector_
         | None -> R.Option None)
       in
       R.Tuple [v1; v2; v3]
+    )
+  )
+
+let map_instant_vector_selector (env : env) (x : CST.instant_vector_selector) =
+  (match x with
+  | `Semg_meta tok -> R.Case ("Semg_meta",
+      (* semgrep_metavariable *) token env tok
+    )
+  | `Series_matc_opt_modi (v1, v2) -> R.Case ("Series_matc_opt_modi",
+      let v1 = map_series_matcher env v1 in
+      let v2 =
+        (match v2 with
+        | Some x -> R.Option (Some (
+            map_modifier env x
+          ))
+        | None -> R.Option None)
+      in
+      R.Tuple [v1; v2]
+    )
+  )
+
+let map_selector_expression (env : env) (x : CST.selector_expression) =
+  (match x with
+  | `Inst_vec_sele x -> R.Case ("Inst_vec_sele",
+      map_instant_vector_selector env x
+    )
+  | `Range_vec_sele x -> R.Case ("Range_vec_sele",
+      map_range_vector_selector env x
     )
   )
 
@@ -585,6 +582,9 @@ let rec map_binary_expression (env : env) (x : CST.binary_expression) =
     )
   )
 
+and map_call_expression (env : env) (x : CST.call_expression) =
+  map_function_call env x
+
 and map_function_args (env : env) ((v1, v2, v3) : CST.function_args) =
   let v1 = (* "(" *) token env v1 in
   let v2 =
@@ -612,47 +612,29 @@ and map_function_args (env : env) ((v1, v2, v3) : CST.function_args) =
   let v3 = (* ")" *) token env v3 in
   R.Tuple [v1; v2; v3]
 
-and map_function_call (env : env) ((v1, v2) : CST.function_call) =
-  let v1 = map_function_name env v1 in
-  let v2 = map_function_args env v2 in
-  R.Tuple [v1; v2]
-
-and map_operator_expression (env : env) (x : CST.operator_expression) =
+and map_function_call (env : env) (x : CST.function_call) =
   (match x with
-  | `Aggr_exp (v1, v2, v3, v4, v5, v6, v7) -> R.Case ("Aggr_exp",
-      let v1 = map_aggregation_operator env v1 in
-      let v2 =
-        (match v2 with
-        | Some x -> R.Option (Some (
-            map_aggregation_grouping env x
-          ))
-        | None -> R.Option None)
-      in
-      let v3 = (* "(" *) token env v3 in
-      let v4 =
-        (match v4 with
-        | Some (v1, v2) -> R.Option (Some (
-            let v1 = map_literal_expression env v1 in
-            let v2 = (* "," *) token env v2 in
-            R.Tuple [v1; v2]
-          ))
-        | None -> R.Option None)
-      in
-      let v5 = map_query_ env v5 in
-      let v6 = (* ")" *) token env v6 in
-      let v7 =
-        (match v7 with
-        | Some x -> R.Option (Some (
-            map_aggregation_grouping env x
-          ))
-        | None -> R.Option None)
-      in
-      R.Tuple [v1; v2; v3; v4; v5; v6; v7]
+  | `Func_name_func_args (v1, v2) -> R.Case ("Func_name_func_args",
+      let v1 = map_function_name env v1 in
+      let v2 = map_function_args env v2 in
+      R.Tuple [v1; v2]
     )
-  | `Bin_exp x -> R.Case ("Bin_exp",
-      map_binary_expression env x
+  | `Func_name_grou_func_args (v1, v2, v3) -> R.Case ("Func_name_grou_func_args",
+      let v1 = map_function_name env v1 in
+      let v2 = map_grouping env v2 in
+      let v3 = map_function_args env v3 in
+      R.Tuple [v1; v2; v3]
+    )
+  | `Func_name_func_args_grou (v1, v2, v3) -> R.Case ("Func_name_func_args_grou",
+      let v1 = map_function_name env v1 in
+      let v2 = map_function_args env v2 in
+      let v3 = map_grouping env v3 in
+      R.Tuple [v1; v2; v3]
     )
   )
+
+and map_operator_expression (env : env) (x : CST.operator_expression) =
+  map_binary_expression env x
 
 and map_query (env : env) (x : CST.query) =
   (match x with
@@ -675,13 +657,11 @@ and map_query_expression (env : env) (x : CST.query_expression) =
   | `Lit_exp x -> R.Case ("Lit_exp",
       map_literal_expression env x
     )
-  | `Timess_sele_exp x -> R.Case ("Timess_sele_exp",
-      map_timeseries_selector_expression env x
+  | `Sele_exp x -> R.Case ("Sele_exp",
+      map_selector_expression env x
     )
-  | `Func_exp (v1, v2) -> R.Case ("Func_exp",
-      let v1 = map_function_name env v1 in
-      let v2 = map_function_args env v2 in
-      R.Tuple [v1; v2]
+  | `Call_exp x -> R.Case ("Call_exp",
+      map_call_expression env x
     )
   | `Op_exp x -> R.Case ("Op_exp",
       map_operator_expression env x

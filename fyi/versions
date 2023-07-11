@@ -1,6 +1,6 @@
 File: semgrep-grammars/src/tree-sitter-promql/LICENSE
 Git repo name: tree-sitter-promql
-Latest commit in repo: 04e07cf5e6f0053840f8394e652aa5be341ff424
+Latest commit in repo: 655afc4fe6813f38bde087d6493d8fd4920d6d4a
 Last change in file:
   commit 04e07cf5e6f0053840f8394e652aa5be341ff424
   Author: Michael Hoffmann <mhoffm@posteo.de>
@@ -10,23 +10,21 @@ Last change in file:
 ---
 File: semgrep-grammars/src/tree-sitter-promql/grammar.js
 Git repo name: tree-sitter-promql
-Latest commit in repo: 04e07cf5e6f0053840f8394e652aa5be341ff424
+Latest commit in repo: 655afc4fe6813f38bde087d6493d8fd4920d6d4a
 Last change in file:
-  commit 0e0dd23f3680cb15affe4de01a7ed46a5232fe1e
+  commit 136852560bcfb41bdc461699629fca6b382306f5
   Author: Michael Hoffmann <mhoffm@posteo.de>
-  Date:   Sun Jul 9 17:28:16 2023 +0200
+  Date:   Mon Jul 10 20:48:13 2023 +0200
   
-      wip: initial grammar
+      all: use function calls for aggregations too
 ---
 File: semgrep-grammars/src/semgrep-promql/grammar.js
 Git repo name: ocaml-tree-sitter-semgrep
-Latest commit in repo: af5334d4587f48b4fc9e2c220fc1e9d44c29da03
+Latest commit in repo: 7f439241984581bc4053121b4607bfdde006fc68
 Last change in file:
-  commit af5334d4587f48b4fc9e2c220fc1e9d44c29da03
+  commit 27c8765d5422f05af827748da72825d974244669
   Author: Michael Hoffmann <mhoffm@posteo.de>
-  Date:   Mon Jul 10 17:22:34 2023 +0200
+  Date:   Tue Jul 11 21:50:33 2023 +0200
   
-      Promql: add initial parser
-      
-      Signed-off-by: Michael Hoffmann <mhoffm@posteo.de>
+      Update promql parser
 ---
