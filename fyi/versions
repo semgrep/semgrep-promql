@@ -20,11 +20,13 @@ Last change in file:
 ---
 File: semgrep-grammars/src/semgrep-promql/grammar.js
 Git repo name: ocaml-tree-sitter-semgrep
-Latest commit in repo: 7f439241984581bc4053121b4607bfdde006fc68
+Latest commit in repo: 4374124a9fce73c9c6a8fc23d52edde7c985f259
 Last change in file:
-  commit 27c8765d5422f05af827748da72825d974244669
+  commit b4f403de3dc61e23fcb2329bc5774bed9ea483de
   Author: Michael Hoffmann <mhoffm@posteo.de>
-  Date:   Tue Jul 11 21:50:33 2023 +0200
+  Date:   Thu Jul 13 20:25:22 2023 +0200
   
-      Update promql parser
+      feat(promql): more semgrep constructs
+      
+      Signed-off-by: Michael Hoffmann <mhoffm@posteo.de>
 ---

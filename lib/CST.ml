@@ -8,20 +8,35 @@
 open! Sexplib.Conv
 open Tree_sitter_run
 
+type semgrep_metavariable = Token.t
+
+type identifier = Token.t (* pattern [a-zA-Z_:][a-zA-Z0-9_:]* *)
+
 type pat_db4e4e9 =
   Token.t (* pattern [-+]?([0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?|0[xX][0-9a-fA-F]+|[nN][aA][nN]|[iI][nN][fF]) *)
 
-type semgrep_metavariable = Token.t
-
 type pat_dcab316 = Token.t (* pattern [1-9][0-9]* *)
-
-type double_quoted_string = Token.t
-
-type identifier = Token.t (* pattern [a-zA-Z_:][a-zA-Z0-9_:]* *)
 
 type single_quoted_string = Token.t
 
 type pat_780550e = Token.t (* pattern [0-9]+ *)
+
+type double_quoted_string = Token.t
+
+type label_name = [
+    `Semg_meta of semgrep_metavariable (*tok*)
+  | `Id of identifier (*tok*)
+]
+
+type metric_name = [
+    `Semg_meta of semgrep_metavariable (*tok*)
+  | `Id of identifier (*tok*)
+]
+
+type function_name = [
+    `Semg_meta of semgrep_metavariable (*tok*)
+  | `Id of identifier (*tok*)
+]
 
 type float_literal = [
     `Semg_meta of semgrep_metavariable (*tok*)
@@ -37,19 +52,22 @@ type at = (
     ]
 )
 
-type function_name = [
+type duration = [
     `Semg_meta of semgrep_metavariable (*tok*)
-  | `Id of identifier (*tok*)
-]
-
-type label_name = [
-    `Semg_meta of semgrep_metavariable (*tok*)
-  | `Id of identifier (*tok*)
-]
-
-type metric_name = [
-    `Semg_meta of semgrep_metavariable (*tok*)
-  | `Id of identifier (*tok*)
+  | `Rep1_pat_780550e_choice_ms of
+      (
+          pat_780550e
+        * [
+              `Ms of Token.t (* "ms" *)
+            | `S of Token.t (* "s" *)
+            | `M of Token.t (* "m" *)
+            | `H of Token.t (* "h" *)
+            | `D of Token.t (* "d" *)
+            | `W of Token.t (* "w" *)
+            | `Y of Token.t (* "y" *)
+          ]
+      )
+        list (* one or more *)
 ]
 
 type quoted_string = [
@@ -57,36 +75,20 @@ type quoted_string = [
   | `Double_quoted_str of double_quoted_string (*tok*)
 ]
 
-type duration =
-  (
-      pat_780550e
-    * [
-          `Ms of Token.t (* "ms" *)
-        | `S of Token.t (* "s" *)
-        | `M of Token.t (* "m" *)
-        | `H of Token.t (* "h" *)
-        | `D of Token.t (* "d" *)
-        | `W of Token.t (* "w" *)
-        | `Y of Token.t (* "y" *)
-      ]
-  )
-    list (* one or more *)
-
 type anon_label_name_rep_COMMA_label_name_opt_COMMA_84ead0c = (
     label_name
   * (Token.t (* "," *) * label_name) list (* zero or more *)
   * Token.t (* "," *) option
 )
 
-type string_literal = [
-    `Semg_meta of semgrep_metavariable (*tok*)
-  | `Quoted_str of quoted_string
+type anon_choice_semg_ellips_d768110 = [
+    `Semg_ellips of Token.t (* "..." *)
+  | `Label_name of label_name
 ]
 
-type label_value = [
-    `Semg_meta of semgrep_metavariable (*tok*)
-  | `Quoted_str of quoted_string
-]
+type offset = (Token.t (* "offset" *) * Token.t (* "-" *) option * duration)
+
+type range_selection = (Token.t (* "[" *) * duration * Token.t (* "]" *))
 
 type subquery_range_selection = (
     Token.t (* "[" *)
@@ -96,9 +98,15 @@ type subquery_range_selection = (
   * Token.t (* "]" *)
 )
 
-type range_selection = (Token.t (* "[" *) * duration * Token.t (* "]" *))
+type label_value = [
+    `Semg_meta of semgrep_metavariable (*tok*)
+  | `Quoted_str of quoted_string
+]
 
-type offset = (Token.t (* "offset" *) * Token.t (* "-" *) option * duration)
+type string_literal = [
+    `Semg_meta of semgrep_metavariable (*tok*)
+  | `Quoted_str of quoted_string
+]
 
 type binary_grouping = (
     [ `On of Token.t (* "on" *) | `Igno of Token.t (* "ignoring" *) ]
@@ -123,24 +131,14 @@ type binary_grouping = (
 type grouping = (
     [ `By of Token.t (* "by" *) | `With of Token.t (* "without" *) ]
   * Token.t (* "(" *)
-  * anon_label_name_rep_COMMA_label_name_opt_COMMA_84ead0c option
+  * (
+        anon_choice_semg_ellips_d768110
+      * (Token.t (* "," *) * anon_choice_semg_ellips_d768110)
+          list (* zero or more *)
+      * Token.t (* "," *) option
+    )
+      option
   * Token.t (* ")" *)
-)
-
-type literal_expression = [
-    `Float_lit of float_literal
-  | `Str_lit of string_literal
-]
-
-type label_matcher = (
-    label_name
-  * [
-        `EQ of Token.t (* "=" *)
-      | `BANGEQ of Token.t (* "!=" *)
-      | `EQTILDE of Token.t (* "=~" *)
-      | `BANGTILDE of Token.t (* "!~" *)
-    ]
-  * label_value
 )
 
 type modifier = [
@@ -148,11 +146,31 @@ type modifier = [
   | `At_opt_offset of (at * offset option)
 ]
 
+type literal_expression = [
+    `Float_lit of float_literal
+  | `Str_lit of string_literal
+]
+
+type anon_choice_semg_ellips_c826cc7 = [
+    `Semg_ellips of Token.t (* "..." *)
+  | `Label_matc of (
+        label_name
+      * [
+            `EQ of Token.t (* "=" *)
+          | `BANGEQ of Token.t (* "!=" *)
+          | `EQTILDE of Token.t (* "=~" *)
+          | `BANGTILDE of Token.t (* "!~" *)
+        ]
+      * label_value
+    )
+]
+
 type label_selectors = (
     Token.t (* "{" *)
   * (
-        label_matcher
-      * (Token.t (* "," *) * label_matcher) list (* zero or more *)
+        anon_choice_semg_ellips_c826cc7
+      * (Token.t (* "," *) * anon_choice_semg_ellips_c826cc7)
+          list (* zero or more *)
       * Token.t (* "," *) option
     )
       option
@@ -161,26 +179,17 @@ type label_selectors = (
 
 type series_matcher = (metric_name * label_selectors option)
 
-type range_vector_selector = [
-    `Semg_meta of semgrep_metavariable (*tok*)
-  | `Series_matc_range_sele_opt_modi of (
-        series_matcher
-      * range_selection
-      * modifier option
-    )
-]
-
-type instant_vector_selector = [
-    `Semg_meta of semgrep_metavariable (*tok*)
-  | `Series_matc_opt_modi of (series_matcher * modifier option)
-]
-
 type selector_expression = [
-    `Inst_vec_sele of instant_vector_selector
-  | `Range_vec_sele of range_vector_selector
+    `Inst_vec_sele of (series_matcher * modifier option)
+  | `Range_vec_sele of (series_matcher * range_selection * modifier option)
 ]
 
-type binary_expression = [
+type anon_choice_semg_ellips_b8a9c95 = [
+    `Semg_ellips of Token.t (* "..." *)
+  | `Query of query_
+]
+
+and binary_expression = [
     `Query_choice_HAT_opt_bin_grou_query of (
         query_
       * [ `HAT of Token.t (* "^" *) ]
@@ -240,8 +249,9 @@ and call_expression = function_call
 and function_args = (
     Token.t (* "(" *)
   * (
-        query_
-      * (Token.t (* "," *) * query_) list (* zero or more *)
+        anon_choice_semg_ellips_b8a9c95
+      * (Token.t (* "," *) * anon_choice_semg_ellips_b8a9c95)
+          list (* zero or more *)
       * Token.t (* "," *) option
     )
       option
@@ -276,5 +286,29 @@ and query_expression = [
 and subquery = (query_ * subquery_range_selection * modifier option)
 
 type comment (* inlined *) = Token.t
+
+type semgrep_ellipsis (* inlined *) = Token.t (* "..." *)
+
+type label_matcher (* inlined *) = (
+    label_name
+  * [
+        `EQ of Token.t (* "=" *)
+      | `BANGEQ of Token.t (* "!=" *)
+      | `EQTILDE of Token.t (* "=~" *)
+      | `BANGTILDE of Token.t (* "!~" *)
+    ]
+  * label_value
+)
+
+type instant_vector_selector (* inlined *) = (
+    series_matcher
+  * modifier option
+)
+
+type range_vector_selector (* inlined *) = (
+    series_matcher
+  * range_selection
+  * modifier option
+)
 
 type subquery_expression (* inlined *) = subquery
