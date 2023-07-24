@@ -353,26 +353,17 @@ let children_regexps : (string * Run.exp option) list = [
   Some (
     Alt [|
       Seq [
-        Alt [|
-          Token (Name "semgrep_ellipsis");
-          Token (Name "query");
-        |];
+        Token (Name "query");
         Alt [|
           Token (Literal "^");
         |];
         Opt (
           Token (Name "binary_grouping");
         );
-        Alt [|
-          Token (Name "semgrep_ellipsis");
-          Token (Name "query");
-        |];
+        Token (Name "query");
       ];
       Seq [
-        Alt [|
-          Token (Name "semgrep_ellipsis");
-          Token (Name "query");
-        |];
+        Token (Name "query");
         Alt [|
           Token (Literal "*");
           Token (Literal "/");
@@ -381,16 +372,10 @@ let children_regexps : (string * Run.exp option) list = [
         Opt (
           Token (Name "binary_grouping");
         );
-        Alt [|
-          Token (Name "semgrep_ellipsis");
-          Token (Name "query");
-        |];
+        Token (Name "query");
       ];
       Seq [
-        Alt [|
-          Token (Name "semgrep_ellipsis");
-          Token (Name "query");
-        |];
+        Token (Name "query");
         Alt [|
           Token (Literal "+");
           Token (Literal "-");
@@ -398,16 +383,10 @@ let children_regexps : (string * Run.exp option) list = [
         Opt (
           Token (Name "binary_grouping");
         );
-        Alt [|
-          Token (Name "semgrep_ellipsis");
-          Token (Name "query");
-        |];
+        Token (Name "query");
       ];
       Seq [
-        Alt [|
-          Token (Name "semgrep_ellipsis");
-          Token (Name "query");
-        |];
+        Token (Name "query");
         Alt [|
           Token (Literal "==");
           Token (Literal "!=");
@@ -422,16 +401,10 @@ let children_regexps : (string * Run.exp option) list = [
         Opt (
           Token (Name "binary_grouping");
         );
-        Alt [|
-          Token (Name "semgrep_ellipsis");
-          Token (Name "query");
-        |];
+        Token (Name "query");
       ];
       Seq [
-        Alt [|
-          Token (Name "semgrep_ellipsis");
-          Token (Name "query");
-        |];
+        Token (Name "query");
         Alt [|
           Token (Name "pat_and");
           Token (Name "pat_or");
@@ -440,26 +413,17 @@ let children_regexps : (string * Run.exp option) list = [
         Opt (
           Token (Name "binary_grouping");
         );
-        Alt [|
-          Token (Name "semgrep_ellipsis");
-          Token (Name "query");
-        |];
+        Token (Name "query");
       ];
       Seq [
-        Alt [|
-          Token (Name "semgrep_ellipsis");
-          Token (Name "query");
-        |];
+        Token (Name "query");
         Alt [|
           Token (Name "pat_atan2");
         |];
         Opt (
           Token (Name "binary_grouping");
         );
-        Alt [|
-          Token (Name "semgrep_ellipsis");
-          Token (Name "query");
-        |];
+        Token (Name "query");
       ];
     |];
   );
@@ -470,17 +434,11 @@ let children_regexps : (string * Run.exp option) list = [
       Token (Literal "(");
       Opt (
         Seq [
-          Alt [|
-            Token (Name "semgrep_ellipsis");
-            Token (Name "query");
-          |];
+          Token (Name "query");
           Repeat (
             Seq [
               Token (Literal ",");
-              Alt [|
-                Token (Name "semgrep_ellipsis");
-                Token (Name "query");
-              |];
+              Token (Name "query");
             ];
           );
           Opt (
@@ -528,11 +486,14 @@ let children_regexps : (string * Run.exp option) list = [
   "query_expression",
   Some (
     Alt [|
-      Token (Name "literal_expression");
-      Token (Name "selector_expression");
-      Token (Name "call_expression");
-      Token (Name "operator_expression");
-      Token (Name "subquery_expression");
+      Token (Name "semgrep_ellipsis");
+      Alt [|
+        Token (Name "literal_expression");
+        Token (Name "selector_expression");
+        Token (Name "call_expression");
+        Token (Name "operator_expression");
+        Token (Name "subquery_expression");
+      |];
     |];
   );
   "subquery",
@@ -1313,22 +1274,11 @@ let rec trans_binary_expression ((kind, body) : mt) : CST.binary_expression =
   | Children v ->
       (match v with
       | Alt (0, v) ->
-          `Choice_semg_ellips_choice_HAT_opt_bin_grou_choice_semg_ellips (
+          `Query_choice_HAT_opt_bin_grou_query (
             (match v with
             | Seq [v0; v1; v2; v3] ->
                 (
-                  (match v0 with
-                  | Alt (0, v) ->
-                      `Semg_ellips (
-                        trans_semgrep_ellipsis (Run.matcher_token v)
-                      )
-                  | Alt (1, v) ->
-                      `Query (
-                        trans_query (Run.matcher_token v)
-                      )
-                  | _ -> assert false
-                  )
-                  ,
+                  trans_query (Run.matcher_token v0),
                   (match v1 with
                   | Alt (0, v) ->
                       `HAT (
@@ -1341,38 +1291,17 @@ let rec trans_binary_expression ((kind, body) : mt) : CST.binary_expression =
                     (fun v -> trans_binary_grouping (Run.matcher_token v))
                     v2
                   ,
-                  (match v3 with
-                  | Alt (0, v) ->
-                      `Semg_ellips (
-                        trans_semgrep_ellipsis (Run.matcher_token v)
-                      )
-                  | Alt (1, v) ->
-                      `Query (
-                        trans_query (Run.matcher_token v)
-                      )
-                  | _ -> assert false
-                  )
+                  trans_query (Run.matcher_token v3)
                 )
             | _ -> assert false
             )
           )
       | Alt (1, v) ->
-          `Choice_semg_ellips_choice_STAR_opt_bin_grou_choice_semg_ellips (
+          `Query_choice_STAR_opt_bin_grou_query (
             (match v with
             | Seq [v0; v1; v2; v3] ->
                 (
-                  (match v0 with
-                  | Alt (0, v) ->
-                      `Semg_ellips (
-                        trans_semgrep_ellipsis (Run.matcher_token v)
-                      )
-                  | Alt (1, v) ->
-                      `Query (
-                        trans_query (Run.matcher_token v)
-                      )
-                  | _ -> assert false
-                  )
-                  ,
+                  trans_query (Run.matcher_token v0),
                   (match v1 with
                   | Alt (0, v) ->
                       `STAR (
@@ -1393,38 +1322,17 @@ let rec trans_binary_expression ((kind, body) : mt) : CST.binary_expression =
                     (fun v -> trans_binary_grouping (Run.matcher_token v))
                     v2
                   ,
-                  (match v3 with
-                  | Alt (0, v) ->
-                      `Semg_ellips (
-                        trans_semgrep_ellipsis (Run.matcher_token v)
-                      )
-                  | Alt (1, v) ->
-                      `Query (
-                        trans_query (Run.matcher_token v)
-                      )
-                  | _ -> assert false
-                  )
+                  trans_query (Run.matcher_token v3)
                 )
             | _ -> assert false
             )
           )
       | Alt (2, v) ->
-          `Choice_semg_ellips_choice_PLUS_opt_bin_grou_choice_semg_ellips (
+          `Query_choice_PLUS_opt_bin_grou_query (
             (match v with
             | Seq [v0; v1; v2; v3] ->
                 (
-                  (match v0 with
-                  | Alt (0, v) ->
-                      `Semg_ellips (
-                        trans_semgrep_ellipsis (Run.matcher_token v)
-                      )
-                  | Alt (1, v) ->
-                      `Query (
-                        trans_query (Run.matcher_token v)
-                      )
-                  | _ -> assert false
-                  )
-                  ,
+                  trans_query (Run.matcher_token v0),
                   (match v1 with
                   | Alt (0, v) ->
                       `PLUS (
@@ -1441,38 +1349,17 @@ let rec trans_binary_expression ((kind, body) : mt) : CST.binary_expression =
                     (fun v -> trans_binary_grouping (Run.matcher_token v))
                     v2
                   ,
-                  (match v3 with
-                  | Alt (0, v) ->
-                      `Semg_ellips (
-                        trans_semgrep_ellipsis (Run.matcher_token v)
-                      )
-                  | Alt (1, v) ->
-                      `Query (
-                        trans_query (Run.matcher_token v)
-                      )
-                  | _ -> assert false
-                  )
+                  trans_query (Run.matcher_token v3)
                 )
             | _ -> assert false
             )
           )
       | Alt (3, v) ->
-          `Choice_semg_ellips_choice_EQEQ_opt_pat_bool_opt_bin_grou_choice_semg_ellips (
+          `Query_choice_EQEQ_opt_pat_bool_opt_bin_grou_query (
             (match v with
             | Seq [v0; v1; v2; v3; v4] ->
                 (
-                  (match v0 with
-                  | Alt (0, v) ->
-                      `Semg_ellips (
-                        trans_semgrep_ellipsis (Run.matcher_token v)
-                      )
-                  | Alt (1, v) ->
-                      `Query (
-                        trans_query (Run.matcher_token v)
-                      )
-                  | _ -> assert false
-                  )
-                  ,
+                  trans_query (Run.matcher_token v0),
                   (match v1 with
                   | Alt (0, v) ->
                       `EQEQ (
@@ -1509,38 +1396,17 @@ let rec trans_binary_expression ((kind, body) : mt) : CST.binary_expression =
                     (fun v -> trans_binary_grouping (Run.matcher_token v))
                     v3
                   ,
-                  (match v4 with
-                  | Alt (0, v) ->
-                      `Semg_ellips (
-                        trans_semgrep_ellipsis (Run.matcher_token v)
-                      )
-                  | Alt (1, v) ->
-                      `Query (
-                        trans_query (Run.matcher_token v)
-                      )
-                  | _ -> assert false
-                  )
+                  trans_query (Run.matcher_token v4)
                 )
             | _ -> assert false
             )
           )
       | Alt (4, v) ->
-          `Choice_semg_ellips_choice_pat_and_opt_bin_grou_choice_semg_ellips (
+          `Query_choice_pat_and_opt_bin_grou_query (
             (match v with
             | Seq [v0; v1; v2; v3] ->
                 (
-                  (match v0 with
-                  | Alt (0, v) ->
-                      `Semg_ellips (
-                        trans_semgrep_ellipsis (Run.matcher_token v)
-                      )
-                  | Alt (1, v) ->
-                      `Query (
-                        trans_query (Run.matcher_token v)
-                      )
-                  | _ -> assert false
-                  )
-                  ,
+                  trans_query (Run.matcher_token v0),
                   (match v1 with
                   | Alt (0, v) ->
                       `Pat_and (
@@ -1561,38 +1427,17 @@ let rec trans_binary_expression ((kind, body) : mt) : CST.binary_expression =
                     (fun v -> trans_binary_grouping (Run.matcher_token v))
                     v2
                   ,
-                  (match v3 with
-                  | Alt (0, v) ->
-                      `Semg_ellips (
-                        trans_semgrep_ellipsis (Run.matcher_token v)
-                      )
-                  | Alt (1, v) ->
-                      `Query (
-                        trans_query (Run.matcher_token v)
-                      )
-                  | _ -> assert false
-                  )
+                  trans_query (Run.matcher_token v3)
                 )
             | _ -> assert false
             )
           )
       | Alt (5, v) ->
-          `Choice_semg_ellips_choice_pat_atan2_opt_bin_grou_choice_semg_ellips (
+          `Query_choice_pat_atan2_opt_bin_grou_query (
             (match v with
             | Seq [v0; v1; v2; v3] ->
                 (
-                  (match v0 with
-                  | Alt (0, v) ->
-                      `Semg_ellips (
-                        trans_semgrep_ellipsis (Run.matcher_token v)
-                      )
-                  | Alt (1, v) ->
-                      `Query (
-                        trans_query (Run.matcher_token v)
-                      )
-                  | _ -> assert false
-                  )
-                  ,
+                  trans_query (Run.matcher_token v0),
                   (match v1 with
                   | Alt (0, v) ->
                       `Pat_atan2 (
@@ -1605,17 +1450,7 @@ let rec trans_binary_expression ((kind, body) : mt) : CST.binary_expression =
                     (fun v -> trans_binary_grouping (Run.matcher_token v))
                     v2
                   ,
-                  (match v3 with
-                  | Alt (0, v) ->
-                      `Semg_ellips (
-                        trans_semgrep_ellipsis (Run.matcher_token v)
-                      )
-                  | Alt (1, v) ->
-                      `Query (
-                        trans_query (Run.matcher_token v)
-                      )
-                  | _ -> assert false
-                  )
+                  trans_query (Run.matcher_token v3)
                 )
             | _ -> assert false
             )
@@ -1642,35 +1477,14 @@ and trans_function_args ((kind, body) : mt) : CST.function_args =
                 (match v with
                 | Seq [v0; v1; v2] ->
                     (
-                      (match v0 with
-                      | Alt (0, v) ->
-                          `Semg_ellips (
-                            trans_semgrep_ellipsis (Run.matcher_token v)
-                          )
-                      | Alt (1, v) ->
-                          `Query (
-                            trans_query (Run.matcher_token v)
-                          )
-                      | _ -> assert false
-                      )
-                      ,
+                      trans_query (Run.matcher_token v0),
                       Run.repeat
                         (fun v ->
                           (match v with
                           | Seq [v0; v1] ->
                               (
                                 Run.trans_token (Run.matcher_token v0),
-                                (match v1 with
-                                | Alt (0, v) ->
-                                    `Semg_ellips (
-                                      trans_semgrep_ellipsis (Run.matcher_token v)
-                                    )
-                                | Alt (1, v) ->
-                                    `Query (
-                                      trans_query (Run.matcher_token v)
-                                    )
-                                | _ -> assert false
-                                )
+                                trans_query (Run.matcher_token v1)
                               )
                           | _ -> assert false
                           )
@@ -1770,24 +1584,34 @@ and trans_query_expression ((kind, body) : mt) : CST.query_expression =
   | Children v ->
       (match v with
       | Alt (0, v) ->
-          `Lit_exp (
-            trans_literal_expression (Run.matcher_token v)
+          `Semg_ellips (
+            trans_semgrep_ellipsis (Run.matcher_token v)
           )
       | Alt (1, v) ->
-          `Sele_exp (
-            trans_selector_expression (Run.matcher_token v)
-          )
-      | Alt (2, v) ->
-          `Call_exp (
-            trans_call_expression (Run.matcher_token v)
-          )
-      | Alt (3, v) ->
-          `Op_exp (
-            trans_operator_expression (Run.matcher_token v)
-          )
-      | Alt (4, v) ->
-          `Subq_exp (
-            trans_subquery_expression (Run.matcher_token v)
+          `Choice_lit_exp (
+            (match v with
+            | Alt (0, v) ->
+                `Lit_exp (
+                  trans_literal_expression (Run.matcher_token v)
+                )
+            | Alt (1, v) ->
+                `Sele_exp (
+                  trans_selector_expression (Run.matcher_token v)
+                )
+            | Alt (2, v) ->
+                `Call_exp (
+                  trans_call_expression (Run.matcher_token v)
+                )
+            | Alt (3, v) ->
+                `Op_exp (
+                  trans_operator_expression (Run.matcher_token v)
+                )
+            | Alt (4, v) ->
+                `Subq_exp (
+                  trans_subquery_expression (Run.matcher_token v)
+                )
+            | _ -> assert false
+            )
           )
       | _ -> assert false
       )

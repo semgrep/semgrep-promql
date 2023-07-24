@@ -22,6 +22,9 @@ let blank (env : env) () =
 let map_pat_atan2 (env : env) (tok : CST.pat_atan2) =
   (* pattern [aA][tT][aA][nN]2 *) token env tok
 
+let map_backtick_quoted_string (env : env) (tok : CST.backtick_quoted_string) =
+  (* backtick_quoted_string *) token env tok
+
 let map_pat_group_left (env : env) (tok : CST.pat_group_left) =
   (* pattern [gG][rR][oO][uU][pP]_[lL][eE][fF][tT] *) token env tok
 
@@ -60,9 +63,6 @@ let map_pat_db4e4e9 (env : env) (tok : CST.pat_db4e4e9) =
 
 let map_single_quoted_string (env : env) (tok : CST.single_quoted_string) =
   (* single_quoted_string *) token env tok
-
-let map_backtick_quoted_string (env : env) (tok : CST.backtick_quoted_string) =
-  (* backtick_quoted_string *) token env tok
 
 let map_pat_on (env : env) (tok : CST.pat_on) =
   (* pattern [oO][nN] *) token env tok
@@ -204,6 +204,16 @@ let map_string_literal (env : env) (x : CST.string_literal) =
     )
   )
 
+let map_anon_choice_semg_ellips_d768110 (env : env) (x : CST.anon_choice_semg_ellips_d768110) =
+  (match x with
+  | `Semg_ellips tok -> R.Case ("Semg_ellips",
+      (* "..." *) token env tok
+    )
+  | `Label_name x -> R.Case ("Label_name",
+      map_label_name env x
+    )
+  )
+
 let map_anon_label_name_rep_COMMA_label_name_opt_COMMA_84ead0c (env : env) ((v1, v2, v3) : CST.anon_label_name_rep_COMMA_label_name_opt_COMMA_84ead0c) =
   let v1 = map_label_name env v1 in
   let v2 =
@@ -221,16 +231,6 @@ let map_anon_label_name_rep_COMMA_label_name_opt_COMMA_84ead0c (env : env) ((v1,
     | None -> R.Option None)
   in
   R.Tuple [v1; v2; v3]
-
-let map_anon_choice_semg_ellips_d768110 (env : env) (x : CST.anon_choice_semg_ellips_d768110) =
-  (match x with
-  | `Semg_ellips tok -> R.Case ("Semg_ellips",
-      (* "..." *) token env tok
-    )
-  | `Label_name x -> R.Case ("Label_name",
-      map_label_name env x
-    )
-  )
 
 let map_range_selection (env : env) ((v1, v2, v3) : CST.range_selection) =
   let v1 = (* "[" *) token env v1 in
@@ -273,6 +273,43 @@ let map_literal_expression (env : env) (x : CST.literal_expression) =
       map_string_literal env x
     )
   )
+
+let map_grouping (env : env) ((v1, v2, v3, v4) : CST.grouping) =
+  let v1 =
+    (match v1 with
+    | `Pat_by x -> R.Case ("Pat_by",
+        map_pat_by env x
+      )
+    | `Pat_with x -> R.Case ("Pat_with",
+        map_pat_with env x
+      )
+    )
+  in
+  let v2 = (* "(" *) token env v2 in
+  let v3 =
+    (match v3 with
+    | Some (v1, v2, v3) -> R.Option (Some (
+        let v1 = map_anon_choice_semg_ellips_d768110 env v1 in
+        let v2 =
+          R.List (List.map (fun (v1, v2) ->
+            let v1 = (* "," *) token env v1 in
+            let v2 = map_anon_choice_semg_ellips_d768110 env v2 in
+            R.Tuple [v1; v2]
+          ) v2)
+        in
+        let v3 =
+          (match v3 with
+          | Some tok -> R.Option (Some (
+              (* "," *) token env tok
+            ))
+          | None -> R.Option None)
+        in
+        R.Tuple [v1; v2; v3]
+      ))
+    | None -> R.Option None)
+  in
+  let v4 = (* ")" *) token env v4 in
+  R.Tuple [v1; v2; v3; v4]
 
 let map_binary_grouping (env : env) ((v1, v2, v3, v4, v5) : CST.binary_grouping) =
   let v1 =
@@ -328,43 +365,6 @@ let map_binary_grouping (env : env) ((v1, v2, v3, v4, v5) : CST.binary_grouping)
     | None -> R.Option None)
   in
   R.Tuple [v1; v2; v3; v4; v5]
-
-let map_grouping (env : env) ((v1, v2, v3, v4) : CST.grouping) =
-  let v1 =
-    (match v1 with
-    | `Pat_by x -> R.Case ("Pat_by",
-        map_pat_by env x
-      )
-    | `Pat_with x -> R.Case ("Pat_with",
-        map_pat_with env x
-      )
-    )
-  in
-  let v2 = (* "(" *) token env v2 in
-  let v3 =
-    (match v3 with
-    | Some (v1, v2, v3) -> R.Option (Some (
-        let v1 = map_anon_choice_semg_ellips_d768110 env v1 in
-        let v2 =
-          R.List (List.map (fun (v1, v2) ->
-            let v1 = (* "," *) token env v1 in
-            let v2 = map_anon_choice_semg_ellips_d768110 env v2 in
-            R.Tuple [v1; v2]
-          ) v2)
-        in
-        let v3 =
-          (match v3 with
-          | Some tok -> R.Option (Some (
-              (* "," *) token env tok
-            ))
-          | None -> R.Option None)
-        in
-        R.Tuple [v1; v2; v3]
-      ))
-    | None -> R.Option None)
-  in
-  let v4 = (* ")" *) token env v4 in
-  R.Tuple [v1; v2; v3; v4]
 
 let map_modifier (env : env) (x : CST.modifier) =
   (match x with
@@ -489,20 +489,10 @@ let map_selector_expression (env : env) (x : CST.selector_expression) =
     )
   )
 
-let rec map_anon_choice_semg_ellips_b8a9c95 (env : env) (x : CST.anon_choice_semg_ellips_b8a9c95) =
+let rec map_binary_expression (env : env) (x : CST.binary_expression) =
   (match x with
-  | `Semg_ellips tok -> R.Case ("Semg_ellips",
-      (* "..." *) token env tok
-    )
-  | `Query x -> R.Case ("Query",
-      map_query_ env x
-    )
-  )
-
-and map_binary_expression (env : env) (x : CST.binary_expression) =
-  (match x with
-  | `Choice_semg_ellips_choice_HAT_opt_bin_grou_choice_semg_ellips (v1, v2, v3, v4) -> R.Case ("Choice_semg_ellips_choice_HAT_opt_bin_grou_choice_semg_ellips",
-      let v1 = map_anon_choice_semg_ellips_b8a9c95 env v1 in
+  | `Query_choice_HAT_opt_bin_grou_query (v1, v2, v3, v4) -> R.Case ("Query_choice_HAT_opt_bin_grou_query",
+      let v1 = map_query_ env v1 in
       let v2 =
         (match v2 with
         | `HAT tok -> R.Case ("HAT",
@@ -517,11 +507,11 @@ and map_binary_expression (env : env) (x : CST.binary_expression) =
           ))
         | None -> R.Option None)
       in
-      let v4 = map_anon_choice_semg_ellips_b8a9c95 env v4 in
+      let v4 = map_query_ env v4 in
       R.Tuple [v1; v2; v3; v4]
     )
-  | `Choice_semg_ellips_choice_STAR_opt_bin_grou_choice_semg_ellips (v1, v2, v3, v4) -> R.Case ("Choice_semg_ellips_choice_STAR_opt_bin_grou_choice_semg_ellips",
-      let v1 = map_anon_choice_semg_ellips_b8a9c95 env v1 in
+  | `Query_choice_STAR_opt_bin_grou_query (v1, v2, v3, v4) -> R.Case ("Query_choice_STAR_opt_bin_grou_query",
+      let v1 = map_query_ env v1 in
       let v2 =
         (match v2 with
         | `STAR tok -> R.Case ("STAR",
@@ -542,11 +532,11 @@ and map_binary_expression (env : env) (x : CST.binary_expression) =
           ))
         | None -> R.Option None)
       in
-      let v4 = map_anon_choice_semg_ellips_b8a9c95 env v4 in
+      let v4 = map_query_ env v4 in
       R.Tuple [v1; v2; v3; v4]
     )
-  | `Choice_semg_ellips_choice_PLUS_opt_bin_grou_choice_semg_ellips (v1, v2, v3, v4) -> R.Case ("Choice_semg_ellips_choice_PLUS_opt_bin_grou_choice_semg_ellips",
-      let v1 = map_anon_choice_semg_ellips_b8a9c95 env v1 in
+  | `Query_choice_PLUS_opt_bin_grou_query (v1, v2, v3, v4) -> R.Case ("Query_choice_PLUS_opt_bin_grou_query",
+      let v1 = map_query_ env v1 in
       let v2 =
         (match v2 with
         | `PLUS tok -> R.Case ("PLUS",
@@ -564,11 +554,11 @@ and map_binary_expression (env : env) (x : CST.binary_expression) =
           ))
         | None -> R.Option None)
       in
-      let v4 = map_anon_choice_semg_ellips_b8a9c95 env v4 in
+      let v4 = map_query_ env v4 in
       R.Tuple [v1; v2; v3; v4]
     )
-  | `Choice_semg_ellips_choice_EQEQ_opt_pat_bool_opt_bin_grou_choice_semg_ellips (v1, v2, v3, v4, v5) -> R.Case ("Choice_semg_ellips_choice_EQEQ_opt_pat_bool_opt_bin_grou_choice_semg_ellips",
-      let v1 = map_anon_choice_semg_ellips_b8a9c95 env v1 in
+  | `Query_choice_EQEQ_opt_pat_bool_opt_bin_grou_query (v1, v2, v3, v4, v5) -> R.Case ("Query_choice_EQEQ_opt_pat_bool_opt_bin_grou_query",
+      let v1 = map_query_ env v1 in
       let v2 =
         (match v2 with
         | `EQEQ tok -> R.Case ("EQEQ",
@@ -605,11 +595,11 @@ and map_binary_expression (env : env) (x : CST.binary_expression) =
           ))
         | None -> R.Option None)
       in
-      let v5 = map_anon_choice_semg_ellips_b8a9c95 env v5 in
+      let v5 = map_query_ env v5 in
       R.Tuple [v1; v2; v3; v4; v5]
     )
-  | `Choice_semg_ellips_choice_pat_and_opt_bin_grou_choice_semg_ellips (v1, v2, v3, v4) -> R.Case ("Choice_semg_ellips_choice_pat_and_opt_bin_grou_choice_semg_ellips",
-      let v1 = map_anon_choice_semg_ellips_b8a9c95 env v1 in
+  | `Query_choice_pat_and_opt_bin_grou_query (v1, v2, v3, v4) -> R.Case ("Query_choice_pat_and_opt_bin_grou_query",
+      let v1 = map_query_ env v1 in
       let v2 =
         (match v2 with
         | `Pat_and x -> R.Case ("Pat_and",
@@ -630,11 +620,11 @@ and map_binary_expression (env : env) (x : CST.binary_expression) =
           ))
         | None -> R.Option None)
       in
-      let v4 = map_anon_choice_semg_ellips_b8a9c95 env v4 in
+      let v4 = map_query_ env v4 in
       R.Tuple [v1; v2; v3; v4]
     )
-  | `Choice_semg_ellips_choice_pat_atan2_opt_bin_grou_choice_semg_ellips (v1, v2, v3, v4) -> R.Case ("Choice_semg_ellips_choice_pat_atan2_opt_bin_grou_choice_semg_ellips",
-      let v1 = map_anon_choice_semg_ellips_b8a9c95 env v1 in
+  | `Query_choice_pat_atan2_opt_bin_grou_query (v1, v2, v3, v4) -> R.Case ("Query_choice_pat_atan2_opt_bin_grou_query",
+      let v1 = map_query_ env v1 in
       let v2 =
         (match v2 with
         | `Pat_atan2 x -> R.Case ("Pat_atan2",
@@ -649,7 +639,7 @@ and map_binary_expression (env : env) (x : CST.binary_expression) =
           ))
         | None -> R.Option None)
       in
-      let v4 = map_anon_choice_semg_ellips_b8a9c95 env v4 in
+      let v4 = map_query_ env v4 in
       R.Tuple [v1; v2; v3; v4]
     )
   )
@@ -662,11 +652,11 @@ and map_function_args (env : env) ((v1, v2, v3) : CST.function_args) =
   let v2 =
     (match v2 with
     | Some (v1, v2, v3) -> R.Option (Some (
-        let v1 = map_anon_choice_semg_ellips_b8a9c95 env v1 in
+        let v1 = map_query_ env v1 in
         let v2 =
           R.List (List.map (fun (v1, v2) ->
             let v1 = (* "," *) token env v1 in
-            let v2 = map_anon_choice_semg_ellips_b8a9c95 env v2 in
+            let v2 = map_query_ env v2 in
             R.Tuple [v1; v2]
           ) v2)
         in
@@ -726,29 +716,27 @@ and map_query_ (env : env) (x : CST.query_) =
 
 and map_query_expression (env : env) (x : CST.query_expression) =
   (match x with
-  | `Lit_exp x -> R.Case ("Lit_exp",
-      map_literal_expression env x
+  | `Semg_ellips tok -> R.Case ("Semg_ellips",
+      (* "..." *) token env tok
     )
-  | `Sele_exp x -> R.Case ("Sele_exp",
-      map_selector_expression env x
-    )
-  | `Call_exp x -> R.Case ("Call_exp",
-      map_call_expression env x
-    )
-  | `Op_exp x -> R.Case ("Op_exp",
-      map_operator_expression env x
-    )
-  | `Subq_exp (v1, v2, v3) -> R.Case ("Subq_exp",
-      let v1 = map_query_ env v1 in
-      let v2 = map_subquery_range_selection env v2 in
-      let v3 =
-        (match v3 with
-        | Some x -> R.Option (Some (
-            map_modifier env x
-          ))
-        | None -> R.Option None)
-      in
-      R.Tuple [v1; v2; v3]
+  | `Choice_lit_exp x -> R.Case ("Choice_lit_exp",
+      (match x with
+      | `Lit_exp x -> R.Case ("Lit_exp",
+          map_literal_expression env x
+        )
+      | `Sele_exp x -> R.Case ("Sele_exp",
+          map_selector_expression env x
+        )
+      | `Call_exp x -> R.Case ("Call_exp",
+          map_call_expression env x
+        )
+      | `Op_exp x -> R.Case ("Op_exp",
+          map_operator_expression env x
+        )
+      | `Subq_exp x -> R.Case ("Subq_exp",
+          map_subquery_expression env x
+        )
+      )
     )
   )
 
@@ -763,6 +751,9 @@ and map_subquery (env : env) ((v1, v2, v3) : CST.subquery) =
     | None -> R.Option None)
   in
   R.Tuple [v1; v2; v3]
+
+and map_subquery_expression (env : env) (x : CST.subquery_expression) =
+  map_subquery env x
 
 let dump_tree root =
   map_query_ () root

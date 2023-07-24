@@ -10,6 +10,8 @@ open Tree_sitter_run
 
 type pat_atan2 = Token.t (* pattern [aA][tT][aA][nN]2 *)
 
+type backtick_quoted_string = Token.t
+
 type pat_group_left =
   Token.t (* pattern [gG][rR][oO][uU][pP]_[lL][eE][fF][tT] *)
 
@@ -38,8 +40,6 @@ type pat_db4e4e9 =
   Token.t (* pattern [-+]?([0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?|0[xX][0-9a-fA-F]+|[nN][aA][nN]|[iI][nN][fF]) *)
 
 type single_quoted_string = Token.t
-
-type backtick_quoted_string = Token.t
 
 type pat_on = Token.t (* pattern [oO][nN] *)
 
@@ -112,16 +112,16 @@ type string_literal = [
   | `Quoted_str of quoted_string
 ]
 
+type anon_choice_semg_ellips_d768110 = [
+    `Semg_ellips of Token.t (* "..." *)
+  | `Label_name of label_name
+]
+
 type anon_label_name_rep_COMMA_label_name_opt_COMMA_84ead0c = (
     label_name
   * (Token.t (* "," *) * label_name) list (* zero or more *)
   * Token.t (* "," *) option
 )
-
-type anon_choice_semg_ellips_d768110 = [
-    `Semg_ellips of Token.t (* "..." *)
-  | `Label_name of label_name
-]
 
 type range_selection = (Token.t (* "[" *) * duration * Token.t (* "]" *))
 
@@ -139,6 +139,19 @@ type literal_expression = [
     `Float_lit of float_literal
   | `Str_lit of string_literal
 ]
+
+type grouping = (
+    [ `Pat_by of pat_by | `Pat_with of pat_with ]
+  * Token.t (* "(" *)
+  * (
+        anon_choice_semg_ellips_d768110
+      * (Token.t (* "," *) * anon_choice_semg_ellips_d768110)
+          list (* zero or more *)
+      * Token.t (* "," *) option
+    )
+      option
+  * Token.t (* ")" *)
+)
 
 type binary_grouping = (
     [ `Pat_on of pat_on | `Pat_igno of pat_igno ]
@@ -158,19 +171,6 @@ type binary_grouping = (
           option
     )
       option
-)
-
-type grouping = (
-    [ `Pat_by of pat_by | `Pat_with of pat_with ]
-  * Token.t (* "(" *)
-  * (
-        anon_choice_semg_ellips_d768110
-      * (Token.t (* "," *) * anon_choice_semg_ellips_d768110)
-          list (* zero or more *)
-      * Token.t (* "," *) option
-    )
-      option
-  * Token.t (* ")" *)
 )
 
 type modifier = [
@@ -215,36 +215,31 @@ type selector_expression = [
   | `Range_vec_sele of (series_matcher * range_selection * modifier option)
 ]
 
-type anon_choice_semg_ellips_b8a9c95 = [
-    `Semg_ellips of Token.t (* "..." *)
-  | `Query of query_
-]
-
-and binary_expression = [
-    `Choice_semg_ellips_choice_HAT_opt_bin_grou_choice_semg_ellips of (
-        anon_choice_semg_ellips_b8a9c95
+type binary_expression = [
+    `Query_choice_HAT_opt_bin_grou_query of (
+        query_
       * [ `HAT of Token.t (* "^" *) ]
       * binary_grouping option
-      * anon_choice_semg_ellips_b8a9c95
+      * query_
     )
-  | `Choice_semg_ellips_choice_STAR_opt_bin_grou_choice_semg_ellips of (
-        anon_choice_semg_ellips_b8a9c95
+  | `Query_choice_STAR_opt_bin_grou_query of (
+        query_
       * [
             `STAR of Token.t (* "*" *)
           | `SLASH of Token.t (* "/" *)
           | `PERC of Token.t (* "%" *)
         ]
       * binary_grouping option
-      * anon_choice_semg_ellips_b8a9c95
+      * query_
     )
-  | `Choice_semg_ellips_choice_PLUS_opt_bin_grou_choice_semg_ellips of (
-        anon_choice_semg_ellips_b8a9c95
+  | `Query_choice_PLUS_opt_bin_grou_query of (
+        query_
       * [ `PLUS of Token.t (* "+" *) | `DASH of Token.t (* "-" *) ]
       * binary_grouping option
-      * anon_choice_semg_ellips_b8a9c95
+      * query_
     )
-  | `Choice_semg_ellips_choice_EQEQ_opt_pat_bool_opt_bin_grou_choice_semg_ellips of (
-        anon_choice_semg_ellips_b8a9c95
+  | `Query_choice_EQEQ_opt_pat_bool_opt_bin_grou_query of (
+        query_
       * [
             `EQEQ of Token.t (* "==" *)
           | `BANGEQ of Token.t (* "!=" *)
@@ -255,23 +250,23 @@ and binary_expression = [
         ]
       * pat_bool option
       * binary_grouping option
-      * anon_choice_semg_ellips_b8a9c95
+      * query_
     )
-  | `Choice_semg_ellips_choice_pat_and_opt_bin_grou_choice_semg_ellips of (
-        anon_choice_semg_ellips_b8a9c95
+  | `Query_choice_pat_and_opt_bin_grou_query of (
+        query_
       * [
             `Pat_and of pat_and
           | `Pat_or of pat_or
           | `Pat_unless of pat_unless
         ]
       * binary_grouping option
-      * anon_choice_semg_ellips_b8a9c95
+      * query_
     )
-  | `Choice_semg_ellips_choice_pat_atan2_opt_bin_grou_choice_semg_ellips of (
-        anon_choice_semg_ellips_b8a9c95
+  | `Query_choice_pat_atan2_opt_bin_grou_query of (
+        query_
       * [ `Pat_atan2 of pat_atan2 ]
       * binary_grouping option
-      * anon_choice_semg_ellips_b8a9c95
+      * query_
     )
 ]
 
@@ -280,9 +275,8 @@ and call_expression = function_call
 and function_args = (
     Token.t (* "(" *)
   * (
-        anon_choice_semg_ellips_b8a9c95
-      * (Token.t (* "," *) * anon_choice_semg_ellips_b8a9c95)
-          list (* zero or more *)
+        query_
+      * (Token.t (* "," *) * query_) list (* zero or more *)
       * Token.t (* "," *) option
     )
       option
@@ -307,14 +301,19 @@ and query = [
 and query_ = query
 
 and query_expression = [
-    `Lit_exp of literal_expression
-  | `Sele_exp of selector_expression
-  | `Call_exp of call_expression
-  | `Op_exp of operator_expression
-  | `Subq_exp of (query_ * subquery_range_selection * modifier option)
+    `Semg_ellips of Token.t (* "..." *)
+  | `Choice_lit_exp of [
+        `Lit_exp of literal_expression
+      | `Sele_exp of selector_expression
+      | `Call_exp of call_expression
+      | `Op_exp of operator_expression
+      | `Subq_exp of subquery_expression
+    ]
 ]
 
 and subquery = (query_ * subquery_range_selection * modifier option)
+
+and subquery_expression = subquery
 
 type semgrep_ellipsis (* inlined *) = Token.t (* "..." *)
 
@@ -341,5 +340,3 @@ type range_vector_selector (* inlined *) = (
   * range_selection
   * modifier option
 )
-
-type subquery_expression (* inlined *) = subquery
