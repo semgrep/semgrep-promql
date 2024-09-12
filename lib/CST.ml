@@ -340,3 +340,7 @@ type range_vector_selector (* inlined *) = (
   * range_selection
   * modifier option
 )
+
+type extra = Comment of Loc.t * comment
+
+type extras = extra list
